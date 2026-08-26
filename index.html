@@ -231,6 +231,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_OPulL4BQAHZd9bvKrWtCSg_u1xk-sLd';
 
 const CONFIGURED = !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_ANON_KEY.startsWith('PASTE_');
 let sb = null;
+let PASS = null;   // the write passphrase, held only for this browser session
 
 async function connect(){
   if(!CONFIGURED) return false;
@@ -259,14 +260,19 @@ const DB = {
     for(const c of data){ (by[c.post_id] = by[c.post_id] || []).push({id:c.id, name:c.name, body:c.body, ts:Date.parse(c.created_at)}); }
     return by;
   },
-  async upsertPost(p){ const { error } = await sb.from('posts').upsert(postToRow(p)); if(error) throw error; },
-  async deletePost(id){ const { error } = await sb.from('posts').delete().eq('id',id); if(error) throw error; },
+  async upsertPost(p){
+    const r = postToRow(p);
+    const { error } = await sb.rpc('save_post', { pass:PASS, p_id:r.id, p_kind:r.kind, p_title:r.title,
+      p_body:r.body, p_source:r.source, p_url:r.url, p_tags:r.tags, p_created:r.created_at });
+    if(error) throw error;
+  },
+  async deletePost(id){ const { error } = await sb.rpc('remove_post', { pass:PASS, p_id:id }); if(error) throw error; },
   async addComment(postId, name, body){
     const { data, error } = await sb.from('comments').insert({post_id:postId, name, body}).select().single();
     if(error) throw error;
     return { id:data.id, name:data.name, body:data.body, ts:Date.parse(data.created_at) };
   },
-  async deleteComment(id){ const { error } = await sb.from('comments').delete().eq('id',id); if(error) throw error; }
+  async deleteComment(id){ const { error } = await sb.rpc('remove_comment', { pass:PASS, c_id:id }); if(error) throw error; }
 };
 
 /* ============================ 2. HELPERS ============================ */
@@ -734,17 +740,16 @@ function openThemes(){
 function setAuthorUI(){
   const b = $('#btn-author');
   b.setAttribute('aria-pressed', state.author);
-  b.textContent = !sb ? 'Write' : state.author ? 'Sign out' : 'Sign in';
+  b.textContent = state.author ? 'Lock' : 'Write';
 }
 function openSignIn(){
   const scrim = document.createElement('div'); scrim.className='scrim';
-  scrim.innerHTML = `<div class="sheet" style="max-width:420px" role="dialog" aria-modal="true" aria-label="Sign in">
-    <h3>Sign in to write</h3>
-    <p class="hint" style="margin:-10px 0 18px">Readers never see this. It only unlocks publishing and moderation.</p>
-    <div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="username"></div>
-    <div class="field"><label for="a-pass">Password</label><input id="a-pass" type="password" autocomplete="current-password"></div>
+  scrim.innerHTML = `<div class="sheet" style="max-width:420px" role="dialog" aria-modal="true" aria-label="Unlock writing">
+    <h3>Unlock writing</h3>
+    <p class="hint" style="margin:-10px 0 18px">One passphrase, set in your database. Readers never see this.</p>
+    <div class="field"><label for="a-pass">Passphrase</label><input id="a-pass" type="password" autocomplete="current-password"></div>
     <p class="hint" id="a-err" style="color:#a3341f"></p>
-    <div class="sheetfoot"><button class="primary" id="a-go">Sign in</button><button class="ghost" id="a-cancel">Cancel</button></div>
+    <div class="sheetfoot"><button class="primary" id="a-go">Unlock</button><button class="ghost" id="a-cancel">Cancel</button></div>
   </div>`;
   document.body.appendChild(scrim);
   const close = ()=>scrim.remove();
@@ -752,18 +757,21 @@ function openSignIn(){
   scrim.addEventListener('mousedown', e=>{ if(e.target===scrim) close(); });
   const go = async ()=>{
     const btn = scrim.querySelector('#a-go');
+    const pass = scrim.querySelector('#a-pass').value;
+    if(!pass) return;
     btn.disabled = true; btn.textContent = 'Checking…';
-    const { error } = await sb.auth.signInWithPassword({
-      email: scrim.querySelector('#a-email').value.trim(),
-      password: scrim.querySelector('#a-pass').value
-    });
-    btn.disabled = false; btn.textContent = 'Sign in';
+    const { data, error } = await sb.rpc('check_pass', { pass });
+    btn.disabled = false; btn.textContent = 'Unlock';
     if(error){ scrim.querySelector('#a-err').textContent = error.message; return; }
-    state.author = true; setAuthorUI(); render(); close(); toast('Signed in. You can publish now.');
+    if(data !== true){ scrim.querySelector('#a-err').textContent = 'That passphrase does not match.'; return; }
+    PASS = pass;
+    try{ sessionStorage.setItem('daybook:pass', pass); }catch(e){}
+    state.author = true; setAuthorUI(); render(); close();
+    toast('Unlocked. You can publish now.');
   };
   scrim.querySelector('#a-go').onclick = go;
   scrim.querySelector('#a-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
-  scrim.querySelector('#a-email').focus();
+  scrim.querySelector('#a-pass').focus();
 }
 function showNotice(kind){
   const el = $('#notice');
@@ -815,8 +823,11 @@ document.addEventListener('click', async e=>{
   else if(t.id==='btn-author'){
     if(!sb){ state.author = !state.author; setAuthorUI(); render();
       toast(state.author ? 'Write mode on (demo — nothing is saved).' : 'Write mode off.'); return; }
-    if(state.author){ await sb.auth.signOut(); state.author=false; setAuthorUI(); render(); toast('Signed out.'); }
-    else openSignIn();
+    if(state.author){
+      PASS = null;
+      try{ sessionStorage.removeItem('daybook:pass'); }catch(e){}
+      state.author = false; setAuthorUI(); render(); toast('Locked.');
+    } else openSignIn();
   }
   else if(t.dataset.delc){
     if(t.dataset.sure!=='1'){ t.dataset.sure='1'; t.textContent='Sure?'; return; }
@@ -873,9 +884,14 @@ $('#q').addEventListener('input', e=>{ state.q = e.target.value; if(state.view.n
     showNotice('error');
   }
 
-  const { data:{ session } } = await sb.auth.getSession();
-  state.author = !!session;
-  sb.auth.onAuthStateChange((_e, s)=>{ state.author = !!s; setAuthorUI(); render(); });
+  try{
+    const saved = sessionStorage.getItem('daybook:pass');
+    if(saved){
+      const { data } = await sb.rpc('check_pass', { pass: saved });
+      if(data === true){ PASS = saved; state.author = true; }
+      else sessionStorage.removeItem('daybook:pass');
+    }
+  }catch(e){ /* no session storage available */ }
   setAuthorUI(); render();
 
   // Optional: new comments appear without a refresh.
