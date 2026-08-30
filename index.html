@@ -1,0 +1,1769 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Daybook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:wght@300;400;600;700&family=Syne:wght@400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#f6f3ec; --ink:#1b1a17; --soft:#6b6559; --accent:#8a4b2a; --accent2:#2d5c4d;
+  --surface:#fffdf8; --line:#d9d2c4; --motif:none; --motif-size:120px; --motif-opacity:.5;
+  --display:'Fraunces',Georgia,serif; --body:'DM Sans',system-ui,sans-serif; --util:'Space Mono',ui-monospace,monospace;
+  --rail:270px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--body);
+  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  transition:background-color .6s ease, color .6s ease;
+}
+#motif{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:var(--motif); background-size:var(--motif-size) var(--motif-size);
+  opacity:var(--motif-opacity); transition:opacity .6s ease;
+}
+#shell{position:relative; z-index:1; display:flex; min-height:100vh}
+a{color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- SPINE (left rail) ---------- */
+#spine{
+  width:var(--rail); flex:0 0 var(--rail); position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column; padding:26px 20px 20px 26px;
+  border-right:1px solid var(--line); background:color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter:blur(6px);
+}
+.masthead{font-family:var(--display); font-weight:700; font-size:30px; line-height:.98; letter-spacing:-.02em; margin:0 0 2px}
+.masthead em{font-style:italic; font-weight:400; display:block; font-size:26px}
+.tagline{font-family:var(--util); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); margin-bottom:20px}
+.rail-label{font-family:var(--util); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--soft);
+  display:flex; justify-content:space-between; align-items:baseline; margin:16px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.rail-label b{font-weight:400; opacity:.7}
+#cats{overflow-y:auto; flex:1; margin:0 -6px; padding:0 6px}
+.cat{
+  display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:0;
+  padding:6px 8px; border-radius:8px; font-size:14.5px; color:var(--ink);
+}
+.cat:hover{background:color-mix(in srgb,var(--accent) 10%, transparent)}
+.cat[aria-current="true"]{background:color-mix(in srgb,var(--accent) 16%, transparent); font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px}
+.cat .n{margin-left:auto; font-family:var(--util); font-size:11px; color:var(--soft)}
+.empty-rail{font-size:13.5px; color:var(--soft); padding:6px 8px; line-height:1.45}
+.spine-foot{border-top:1px solid var(--line); margin-top:12px; padding-top:12px; display:flex; gap:8px; flex-wrap:wrap}
+.mini{font-family:var(--util); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:none; border:1px solid var(--line); border-radius:99px; padding:5px 10px; color:var(--soft)}
+.mini:hover{border-color:var(--accent); color:var(--accent)}
+.mini[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--surface)}
+
+/* ---------- MAIN ---------- */
+#main{flex:1; min-width:0; padding:0 0 120px}
+.colophon{
+  border-bottom:1px solid var(--line); padding:22px 40px 20px;
+  display:flex; align-items:flex-end; gap:24px; flex-wrap:wrap;
+}
+.colophon .cdate{font-family:var(--util); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--soft)}
+.colophon h2{font-family:var(--display); font-size:clamp(28px,4.2vw,46px); font-weight:600; letter-spacing:-.025em; margin:2px 0 0; line-height:1}
+.colophon .cwhy{font-size:14.5px; color:var(--soft); max-width:46ch; margin:6px 0 0}
+.swatches{display:flex; gap:5px; margin-left:auto; align-items:center}
+.sw{width:20px;height:34px;border-radius:3px;border:1px solid rgba(0,0,0,.12)}
+.toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:16px 40px; border-bottom:1px solid var(--line)}
+#q{flex:1; min-width:180px; background:var(--surface); border:1px solid var(--line); border-radius:99px; padding:9px 16px; font-size:15px}
+.kindfilter{display:flex; gap:4px; flex-wrap:wrap}
+.chipbtn{font-family:var(--util); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:none; border:1px solid var(--line); border-radius:99px; padding:6px 11px; color:var(--soft)}
+.chipbtn[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--paper)}
+.primary{background:var(--accent); color:#fff; border:0; border-radius:99px; padding:9px 18px; font-weight:600; font-size:14.5px}
+.primary:hover{filter:brightness(1.08)}
+
+/* ---------- FEED ---------- */
+#feed{max-width:660px; margin:0 auto; padding:18px 20px 40px}
+.entry{display:block; padding:0 0 26px; border-bottom:0}
+.gutter{display:none}
+.slip{
+  --tint:var(--tc, var(--accent));
+  background:color-mix(in srgb, var(--tint) 8%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--tint) 22%, var(--line));
+  border-radius:12px; padding:20px 22px;
+  box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 4%, transparent),
+             0 20px 38px -30px color-mix(in srgb,var(--ink) 70%, transparent);
+}
+.entry-title{font-family:var(--display); font-size:clamp(25px,3.2vw,35px); font-weight:600;
+  font-variation-settings:'opsz' 40; letter-spacing:-.025em; line-height:1.12; margin:0 0 8px}
+.entry-title button{background:none;border:0;padding:0;text-align:left;font:inherit;letter-spacing:inherit}
+.entry-title button:hover{color:var(--accent)}
+.excerpt{color:var(--soft); margin:0}
+.pullquote{font-family:var(--display); font-size:clamp(22px,3vw,34px); font-weight:400; font-style:italic;
+  line-height:1.28; letter-spacing:-.015em; margin:0; text-indent:-.4em}
+.attrib{font-family:var(--util); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--soft); margin-top:14px}
+.jot{background:color-mix(in srgb,var(--accent) 12%, var(--surface)); border:0; border-left:3px solid var(--accent);
+  border-radius:0 4px 4px 0; padding:16px 20px; font-size:16.5px}
+.videoframe{position:relative; padding-top:56.25%; background:#000; border-radius:4px; overflow:hidden; margin-bottom:14px}
+.videoframe iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.tagrow{display:flex; gap:6px; flex-wrap:wrap; margin-top:16px}
+.tag{font-family:var(--util); font-size:10.5px; letter-spacing:.06em; border:0; border-radius:99px; padding:4px 10px;
+  background:color-mix(in srgb, var(--tc) 22%, transparent); color:color-mix(in srgb, var(--tc) 72%, var(--ink))}
+.tag:hover{background:color-mix(in srgb, var(--tc) 40%, transparent)}
+.entryfoot{display:flex; gap:14px; align-items:center; margin-top:14px; font-family:var(--util); font-size:11px; color:var(--soft)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.blank{text-align:center; padding:90px 20px; color:var(--soft)}
+.blank h3{font-family:var(--display); font-size:26px; color:var(--ink); margin:0 0 8px; font-weight:500}
+
+/* ---------- READER ---------- */
+#reader{max-width:1120px; margin:0 auto; padding:30px 40px 90px}
+/* The page is the default. The rail only appears when there is honestly room
+   for it beside a full measure — the 270px spine eats the budget first. */
+.readgrid{display:grid; grid-template-columns:minmax(0,680px); justify-content:center;
+  align-items:start; margin-top:16px}
+.readmain{
+  --tint:var(--tc, var(--accent)); min-width:0;
+  background:color-mix(in srgb, var(--tint) 4%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--tint) 18%, var(--line));
+  border-radius:12px; padding:46px 54px 54px;
+  box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 4%, transparent),
+             0 28px 50px -38px color-mix(in srgb,var(--ink) 75%, transparent);
+}
+@media(min-width:1380px){
+  #reader{max-width:1100px}
+  .readgrid{grid-template-columns:minmax(0,680px) 300px; gap:36px}
+}
+.back{font-family:var(--util); font-size:11px; letter-spacing:.12em; text-transform:uppercase; background:none;border:0;padding:0;color:var(--soft)}
+.back:hover{color:var(--accent)}
+#reader h1{font-family:var(--display); font-size:clamp(30px,3.6vw,42px); font-weight:600; letter-spacing:-.03em; line-height:1.08; margin:0 0 10px}
+.byline{font-family:var(--util); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--soft); margin-bottom:28px}
+.prose{font-size:18.5px; line-height:1.72}
+.prose p{margin:0 0 1.05em}
+.prose h2{font-family:var(--display); font-size:26px; font-weight:600; letter-spacing:-.02em; margin:1.8em 0 .5em}
+.prose h3{font-family:var(--display); font-size:21px; font-weight:600; margin:1.6em 0 .4em}
+.prose blockquote{margin:1.4em 0; padding-left:20px; border-left:3px solid var(--accent); font-family:var(--display); font-style:italic; font-size:21px; color:var(--soft)}
+.prose code{font-family:var(--util); font-size:.85em; background:color-mix(in srgb,var(--ink) 8%, transparent); padding:2px 6px; border-radius:4px}
+.prose li{margin-bottom:.4em}
+.prose a{color:var(--accent)}
+
+/* ---------- COMMENTS ---------- */
+#comments{
+  margin:44px 0 0; padding:26px 0 0; border-top:1px solid var(--line);
+  scrollbar-width:thin;
+}
+@media(min-width:1380px){
+  #comments{
+    position:sticky; top:22px; max-height:calc(100vh - 44px); overflow-y:auto;
+    margin:0; padding:0 4px 0 24px; border-top:0; border-left:1px solid var(--line);
+  }
+}
+#comments::-webkit-scrollbar{width:6px}
+#comments::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px}
+#comments .cform{padding:14px}
+#comments .cform .row{flex-direction:column; align-items:flex-start; gap:9px}
+#comments .cform .primary{white-space:nowrap}
+#comments .comment{grid-template-columns:30px 1fr; gap:11px; padding:13px 0}
+#comments .avatar{width:30px; height:30px; font-size:13px}
+#comments h3{font-family:var(--util); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--soft); margin:0 0 4px; font-weight:400}
+.nosignup{font-size:14px; color:var(--soft); margin:0 0 20px}
+.cform{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:26px}
+.cform input,.cform textarea{width:100%; background:var(--paper); border:1px solid var(--line); border-radius:5px; padding:10px 12px; font-size:15.5px; margin-bottom:10px}
+.cform textarea{min-height:96px; resize:vertical; font-family:var(--body)}
+.cform .row{display:flex; align-items:center; gap:12px}
+.hp{position:absolute!important; left:-9999px!important; width:1px!important; height:1px!important}
+.comment{display:grid; grid-template-columns:38px 1fr; gap:14px; padding:16px 0; border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%; display:grid; place-items:center; font-family:var(--display); font-weight:600; font-size:16px; color:#fff}
+.cmeta{font-family:var(--util); font-size:11px; color:var(--soft); margin-bottom:3px}
+.cmeta b{font-family:var(--body); font-size:14.5px; color:var(--ink); font-weight:600; margin-right:8px}
+.cbody{white-space:pre-wrap; margin:0}
+
+/* ---------- MODALS ---------- */
+/* ---------- LEAF (single-click reading mode) ---------- */
+#leafscrim{
+  position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:4vh 20px; perspective:1600px;
+  background:color-mix(in srgb, var(--ink) 52%, transparent); backdrop-filter:blur(4px);
+}
+.leaf{
+  --tint:var(--tc, var(--accent));
+  background:color-mix(in srgb, var(--tint) 5%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--tint) 24%, var(--line));
+  border-radius:14px; width:min(780px,100%); max-height:92vh;
+  display:flex; flex-direction:column; overflow:hidden; transform-origin:top left;
+  box-shadow:0 50px 90px -32px color-mix(in srgb, var(--ink) 80%, transparent);
+}
+.leaf-head{
+  flex:0 0 auto; display:flex; align-items:center; gap:12px; padding:14px 20px;
+  border-bottom:1px solid color-mix(in srgb,var(--tint) 16%, var(--line));
+  background:color-mix(in srgb, var(--tint) 7%, var(--surface));
+}
+.leaf-head .stamp{margin:0}
+.leaf-x{margin-left:auto; background:none; border:0; padding:4px 6px; font-size:20px; line-height:1; color:var(--soft)}
+.leaf-x:hover{color:var(--ink)}
+.leaf-body{overflow-y:auto; overscroll-behavior:contain; padding:26px 30px 8px; scrollbar-width:thin}
+.leaf-body::-webkit-scrollbar{width:7px}
+.leaf-body::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px}
+.leaf-body h1{font-family:var(--display); font-size:clamp(26px,3.6vw,38px); font-weight:600;
+  letter-spacing:-.03em; line-height:1.1; margin:0 0 8px}
+.leaf-foot{
+  flex:0 0 auto; display:flex; align-items:center; gap:12px; padding:13px 20px;
+  border-top:1px solid color-mix(in srgb,var(--tint) 16%, var(--line));
+  font-family:var(--util); font-size:11px; color:var(--soft);
+  background:color-mix(in srgb, var(--tint) 7%, var(--surface));
+}
+.leaf-foot .primary{margin-left:auto; padding:7px 15px; font-size:13.5px}
+.slip{cursor:zoom-in}
+.slip :is(button,a,iframe){cursor:auto}
+.slip .linkbtn,.slip .tag,.slip .entry-title button,.slip .plate.vid{cursor:pointer}
+.scrim{position:fixed; inset:0; background:rgba(15,14,12,.55); z-index:50; display:flex; justify-content:center; align-items:flex-start; padding:40px 20px; overflow-y:auto}
+.sheet{background:var(--surface); color:var(--ink); border-radius:8px; width:100%; max-width:680px; padding:28px 30px; box-shadow:0 40px 80px -30px rgba(0,0,0,.6)}
+.sheet h3{font-family:var(--display); font-size:26px; font-weight:600; margin:0 0 18px; letter-spacing:-.02em}
+.field{margin-bottom:14px}
+.field label{display:block; font-family:var(--util); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%; background:var(--paper); border:1px solid var(--line); border-radius:5px; padding:11px 13px; font-size:16px}
+.field textarea{min-height:200px; resize:vertical; font-family:var(--body); line-height:1.6}
+.hint{font-size:12.5px; color:var(--soft); margin-top:5px}
+.tagbox{display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:var(--paper); border:1px solid var(--line); border-radius:5px; padding:8px}
+.tagbox input{border:0; background:none; flex:1; min-width:120px; padding:4px; font-size:15px}
+.tagchip{display:inline-flex; align-items:center; gap:6px; font-family:var(--util); font-size:11px; border-radius:99px; padding:4px 8px;
+  background:color-mix(in srgb,var(--tc) 24%, transparent); color:color-mix(in srgb,var(--tc) 75%, var(--ink))}
+.tagchip button{background:none;border:0;padding:0;font-size:14px;line-height:1;color:inherit;opacity:.6}
+.suggest{display:flex; gap:5px; flex-wrap:wrap; margin-top:8px}
+.sheetfoot{display:flex; gap:10px; align-items:center; margin-top:22px; padding-top:18px; border-top:1px solid var(--line)}
+.ghost{background:none; border:1px solid var(--line); border-radius:99px; padding:9px 18px; font-size:14.5px; color:var(--soft)}
+.ghost:hover{border-color:var(--ink); color:var(--ink)}
+.danger{color:#a3341f; border-color:#a3341f55}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; max-height:56vh; overflow-y:auto}
+.tcard{border:1px solid var(--line); border-radius:6px; padding:12px; text-align:left; background:none}
+.tcard:hover{border-color:var(--ink)}
+.tcard .bar{display:flex; gap:3px; margin-bottom:8px}
+.tcard .bar i{height:22px; flex:1; border-radius:2px}
+.tcard strong{display:block; font-family:var(--display); font-size:15.5px; font-weight:600}
+.tcard span{font-family:var(--util); font-size:10px; color:var(--soft)}
+#toast{position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px); z-index:99;
+  background:var(--ink); color:var(--paper); padding:11px 20px; border-radius:99px; font-size:14.5px;
+  opacity:0; pointer-events:none; transition:all .25s ease}
+#toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+
+.shot{margin:0 0 14px; border-radius:4px; overflow:hidden; background:color-mix(in srgb,var(--ink) 6%, transparent)}
+.shot img{display:block; width:100%; height:auto}
+
+/* ---------- STAMP ---------- */
+.stamp{
+  display:inline-flex; align-items:center; gap:8px; margin:0 0 14px;
+  font-family:var(--util); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  border-radius:99px; padding:5px 12px;
+  background:color-mix(in srgb, var(--tint,var(--accent)) 20%, transparent);
+  color:color-mix(in srgb, var(--tint,var(--accent)) 80%, var(--ink));
+}
+.stamp time{opacity:.6; letter-spacing:.1em}
+
+/* ---------- PLATES (bound-in media) ---------- */
+.plates{display:grid; gap:5px; margin:0 0 16px; border-radius:8px; overflow:hidden}
+.plates.one   {grid-template-columns:1fr}
+.plates.two   {grid-template-columns:1fr 1fr; aspect-ratio:2/1}
+.plates.three {grid-template-columns:1.6fr 1fr; grid-template-rows:1fr 1fr; aspect-ratio:3/2}
+.plates.three .plate:first-child{grid-row:1/3}
+.plates.four  {grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; aspect-ratio:3/2}
+.plate{
+  position:relative; margin:0; padding:0; border:0; overflow:hidden; display:block; width:100%;
+  background:color-mix(in srgb,var(--ink) 8%, transparent);
+}
+.plate img{display:block; width:100%; height:100%; object-fit:cover}
+.plates.one .plate img{height:auto; aspect-ratio:16/10}
+.plate iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.plate.vid{cursor:pointer; background:#0a0b0d}
+.plate.vid img{opacity:.8; transition:opacity .3s ease, transform .5s ease}
+.plate.vid:hover img{opacity:.95; transform:scale(1.02)}
+.plate .play{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
+.plate .play i{
+  width:54px; height:54px; border-radius:50%; display:grid; place-items:center;
+  background:rgba(10,10,12,.55); border:1.5px solid rgba(255,255,255,.7);
+  backdrop-filter:blur(4px); transition:transform .25s ease;
+}
+.plate.vid:hover .play i{transform:scale(1.09)}
+.plate .play i::after{
+  content:''; width:0; height:0; margin-left:4px;
+  border-left:14px solid #fff; border-top:9px solid transparent; border-bottom:9px solid transparent;
+}
+.plate .cap{
+  position:absolute; left:0; right:0; bottom:0; padding:26px 13px 9px; text-align:left;
+  font-family:var(--util); font-size:10.5px; letter-spacing:.05em; line-height:1.35; color:#fff;
+  background:linear-gradient(transparent, rgba(0,0,0,.66));
+}
+.plate .rest{
+  position:absolute; inset:0; display:grid; place-items:center; background:rgba(10,10,12,.55);
+  color:#fff; font-family:var(--display); font-size:25px; font-weight:600; letter-spacing:-.02em;
+}
+.plates.one .plate .cap{position:static; background:none; color:var(--soft); padding:8px 2px 0}
+.plate.clip{background:#0a0b0d}
+.plate.clip video{display:block; width:100%; height:100%; object-fit:contain; background:#0a0b0d}
+.plates.one .plate.clip video{height:auto; max-height:min(70vh,560px)}
+.plate-dl{
+  position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:50%;
+  display:grid; place-items:center; text-decoration:none; font-size:14px; line-height:1;
+  color:#fff; background:rgba(10,10,12,.5); border:1px solid rgba(255,255,255,.35);
+  backdrop-filter:blur(3px); opacity:0; transition:opacity .2s ease; z-index:2;
+}
+.plate:hover .plate-dl,.plate-dl:focus-visible{opacity:1}
+.plate-dl:hover{background:rgba(10,10,12,.78)}
+
+/* ---------- COMPOSITOR ---------- */
+.composer{display:flex; gap:5px; flex-wrap:wrap; margin-top:9px}
+.composer .chipbtn:disabled{opacity:.45; cursor:default}
+.aipanel{border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:0 7px 7px 0; padding:13px 15px; margin-top:11px; background:var(--paper)}
+.aipanel h4{font-family:var(--util); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--soft); margin:0 0 9px; font-weight:400}
+.aipanel .hint{margin-top:8px}
+.aipick{display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--line);
+  border-radius:6px; padding:9px 12px; margin-bottom:6px; font-size:15px; font-family:var(--display)}
+.aipick:hover{border-color:var(--accent); color:var(--accent)}
+.chipbtn em{font-style:normal; opacity:.6}
+.diff{font-size:15px; line-height:1.65; max-height:38vh; overflow-y:auto; white-space:pre-wrap;
+  background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 14px}
+.diff del{background:color-mix(in srgb,#a3341f 16%, transparent); text-decoration:line-through; text-decoration-thickness:1px}
+.diff ins{background:color-mix(in srgb,var(--accent2) 20%, transparent); text-decoration:none}
+
+/* ---------- DROPZONE ---------- */
+.dropzone{
+  display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;
+  border:1.5px dashed var(--line); border-radius:9px; padding:18px 16px; margin-bottom:10px;
+  background:var(--paper); text-align:center; transition:border-color .18s ease, background .18s ease;
+}
+.dropzone:hover,.dropzone:focus-visible{border-color:var(--accent)}
+.dropzone.over{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%, var(--paper))}
+.dropzone strong{font-size:15px; font-weight:600}
+.dropzone span{font-family:var(--util); font-size:10.5px; letter-spacing:.06em; color:var(--soft)}
+.uploads{width:100%; margin-top:4px}
+.uploads:empty{margin:0}
+.up{display:flex; gap:10px; align-items:center; justify-content:space-between;
+  font-family:var(--util); font-size:11px; color:var(--soft); padding:4px 2px; border-top:1px solid var(--line)}
+.up span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.up b{font-weight:400; flex:0 0 auto}
+.up.ok b{color:var(--accent2)}
+.up.bad b{color:#a3341f}
+
+/* ---------- GATHERING (card grid) ---------- */
+#feed.gathering{columns:2; column-gap:20px; max-width:1120px}
+#feed.gathering .entry{break-inside:avoid; padding:0 0 20px}
+#feed.gathering .entry-title{font-size:23px}
+@media(max-width:860px){ #feed.gathering{columns:1; max-width:660px} }
+.prose img{max-width:100%; height:auto; border-radius:4px; margin:1.2em 0; display:block}
+
+#notice{margin:0; padding:14px 40px; font-size:14.5px; line-height:1.5;
+  background:color-mix(in srgb,var(--accent) 12%, var(--surface)); border-bottom:1px solid var(--line); color:var(--ink)}
+#notice code{font-family:var(--util); font-size:.85em; background:color-mix(in srgb,var(--ink) 10%, transparent); padding:2px 6px; border-radius:4px}
+
+@media(max-width:900px){
+  #shell{flex-direction:column}
+  #spine{width:auto; flex:none; position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); padding:20px}
+  #cats{max-height:132px}
+  .colophon,.toolbar,#notice{padding-left:20px; padding-right:20px}
+  #feed{padding:12px 16px 32px}
+  #reader{padding:24px 20px 70px}
+  .readmain{padding:26px 22px 30px; border-radius:10px}
+  #leafscrim{padding:0}
+  .leaf{max-height:100vh; height:100%; width:100%; border-radius:0; border:0}
+  .plates.three{aspect-ratio:4/3}
+}
+</style>
+
+<div id="motif"></div>
+<div id="shell">
+  <aside id="spine">
+    <h1 class="masthead">The<em>Daybook</em></h1>
+    <div class="tagline" id="tagline">A daily notebook</div>
+    <div class="rail-label">Categories <b id="catcount"></b></div>
+    <div id="cats"></div>
+    <div class="spine-foot">
+      <button class="mini" id="btn-themes">Themes</button>
+      <button class="mini" id="btn-author" aria-pressed="false">Write</button>
+      <button class="mini" id="btn-export">Backup</button>
+      <button class="mini" id="btn-import">Restore</button>
+    </div>
+  </aside>
+  <main id="main">
+    <div class="colophon">
+      <div>
+        <div class="cdate" id="c-date"></div>
+        <h2 id="c-name"></h2>
+        <p class="cwhy" id="c-why"></p>
+      </div>
+      <div class="swatches" id="c-swatches"></div>
+    </div>
+    <div class="toolbar" id="toolbar">
+      <input id="q" type="search" placeholder="Search entries, tags, quotes…" aria-label="Search entries">
+      <div class="kindfilter" id="kinds"></div>
+      <button class="chipbtn" id="btn-layout" aria-pressed="false">Gathering</button>
+      <button class="primary" id="btn-new" hidden>New entry</button>
+    </div>
+    <div id="notice" hidden></div>
+    <div id="view"></div>
+  </main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================ 1. SUPABASE ============================ */
+/*  ┌──────────────────────────────────────────────────────────────┐
+    │  Paste your two Supabase values here, then save and redeploy. │
+    │  Find them at: Supabase dashboard → Settings → API            │
+    │  The anon key is safe to publish — Row Level Security is what │
+    │  actually protects your data.                                 │
+    └──────────────────────────────────────────────────────────────┘ */
+const SUPABASE_URL      = 'https://qhokuiontpgcsbnbgivf.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_OPulL4BQAHZd9bvKrWtCSg_u1xk-sLd';
+
+const CONFIGURED = !SUPABASE_URL.startsWith('PASTE_') && !SUPABASE_ANON_KEY.startsWith('PASTE_');
+let sb = null;
+let PASS = null;   // the write passphrase, held only for this browser session
+
+async function connect(){
+  if(!CONFIGURED) return false;
+  try{
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return true;
+  }catch(err){ console.error('Supabase failed to load:', err); return false; }
+}
+
+const rowToPost = r => ({ id:r.id, kind:r.kind, title:r.title||'', body:r.body||'', source:r.source||'',
+  url:r.url||'', tags:r.tags||[], media:normMedia(r),
+  created:Date.parse(r.created_at), updated:Date.parse(r.updated_at) });
+const postToRow = p => ({ id:p.id, kind:p.kind, title:p.title||'', body:p.body||'', source:p.source||'',
+  url:p.url||'', tags:p.tags||[], media:p.media||[],
+  created_at:new Date(p.created).toISOString(), updated_at:new Date().toISOString() });
+
+const DB = {
+  async loadPosts(){
+    const { data, error } = await sb.from('posts').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    return data.map(rowToPost);
+  },
+  async loadComments(){
+    const { data, error } = await sb.from('comments').select('*').order('created_at',{ascending:true});
+    if(error) throw error;
+    const by = {};
+    for(const c of data){ (by[c.post_id] = by[c.post_id] || []).push({id:c.id, name:c.name, body:c.body, ts:Date.parse(c.created_at)}); }
+    return by;
+  },
+  async upsertPost(p){
+    const r = postToRow(p);
+    const { error } = await sb.rpc('save_post', { pass:PASS, p_id:r.id, p_kind:r.kind, p_title:r.title,
+      p_body:r.body, p_source:r.source, p_url:r.url, p_tags:r.tags, p_created:r.created_at,
+      p_media:r.media });
+    if(error) throw error;
+  },
+  async deletePost(id){ const { error } = await sb.rpc('remove_post', { pass:PASS, p_id:id }); if(error) throw error; },
+  async addComment(postId, name, body){
+    const { data, error } = await sb.from('comments').insert({post_id:postId, name, body}).select().single();
+    if(error) throw error;
+    return { id:data.id, name:data.name, body:data.body, ts:Date.parse(data.created_at) };
+  },
+  async deleteComment(id){ const { error } = await sb.rpc('remove_comment', { pass:PASS, c_id:id }); if(error) throw error; }
+};
+
+/* ============================ 2. HELPERS ============================ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+function hash(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31 + str.charCodeAt(i))|0; } return Math.abs(h); }
+function hueFor(name){ return hash(name.toLowerCase()) % 360; }
+function tagColor(name){ const h=hueFor(name); return `hsl(${h} 62% 45%)`; }
+function norm(t){ return t.trim().toLowerCase().replace(/\s+/g,' '); }
+function titleCase(t){ return t.replace(/\b\w/g, c=>c.toUpperCase()); }
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('on'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),2600); }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+function ago(ts){
+  const s=(Date.now()-ts)/1000;
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<604800) return Math.floor(s/86400)+'d ago';
+  return fmtDate(ts);
+}
+function mdToHtml(src){
+  const lines = esc(src||'').split(/\r?\n/);
+  let out='', list=null;
+  const inline = t => t
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g,'<img src="$2" alt="$1" loading="lazy">')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>');
+  const closeList=()=>{ if(list){ out+=`</${list}>`; list=null; } };
+  for(const raw of lines){
+    const l = raw.trim();
+    if(!l){ closeList(); continue; }
+    let m;
+    if(/^https?:\/\/\S+$/.test(l)){
+      const vm = videoMeta(l.replace(/&amp;/g,'&'));
+      if(vm){ closeList(); out += `<div class="videoframe"><iframe src="${vm.embed}" loading="lazy" allowfullscreen></iframe></div>`; continue; }
+    }
+    if((m=l.match(/^###\s+(.*)/))){ closeList(); out+=`<h3>${inline(m[1])}</h3>`; }
+    else if((m=l.match(/^##\s+(.*)/))){ closeList(); out+=`<h2>${inline(m[1])}</h2>`; }
+    else if((m=l.match(/^&gt;\s?(.*)/))){ closeList(); out+=`<blockquote>${inline(m[1])}</blockquote>`; }
+    else if((m=l.match(/^[-*]\s+(.*)/))){ if(list!=='ul'){closeList(); out+='<ul>'; list='ul';} out+=`<li>${inline(m[1])}</li>`; }
+    else if((m=l.match(/^\d+\.\s+(.*)/))){ if(list!=='ol'){closeList(); out+='<ol>'; list='ol';} out+=`<li>${inline(m[1])}</li>`; }
+    else { closeList(); out+=`<p>${inline(l)}</p>`; }
+  }
+  closeList();
+  return out;
+}
+function videoMeta(url){
+  const u = String(url||'');
+  let m = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  if(m) return { embed:'https://www.youtube.com/embed/'+m[1],
+                 poster:'https://i.ytimg.com/vi/'+m[1]+'/hqdefault.jpg' };
+  m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(m) return { embed:'https://player.vimeo.com/video/'+m[1], poster:null };
+  return null;
+}
+const videoEmbed = url => (videoMeta(url)||{}).embed || null;
+
+/* Plates: [{type:'image'|'video'|'clip', url, thumb, caption}].
+   `thumb` is a small WebP written at upload; the feed loads it instead of the
+   full plate. Legacy image/video entries are lifted into one plate on read. */
+function normMedia(r){
+  const raw = Array.isArray(r.media) ? r.media : [];
+  const out = raw
+    .map(x => ({ type: (x && ['image','video','clip'].includes(x.type)) ? x.type : plateType((x&&x.url)||''),
+                 url: (x && x.url) || '', thumb: (x && x.thumb) || '', caption: (x && x.caption) || '' }))
+    .filter(x => /^https?:\/\//.test(x.url));
+  if(!out.length && r.url && (r.kind==='image' || r.kind==='video')){
+    out.push({ type:plateType(r.url), url:r.url, thumb:'', caption:'' });
+  }
+  return out;
+}
+const VIDEO_EXT = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i;
+const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif|svg|bmp|heic)(\?|#|$)/i;
+// image = a picture; video = an embed (YouTube, Vimeo); clip = a file we host.
+function plateType(url){
+  if(VIDEO_EXT.test(url)) return 'clip';
+  if(videoMeta(url)) return 'video';
+  return 'image';
+}
+// The textarea only round-trips `url | caption`, so thumbnails are re-attached
+// from a side map the editor keeps.
+function parsePlates(txt, thumbs){
+  return String(txt||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+    const i = l.indexOf('|');
+    const url = (i<0 ? l : l.slice(0,i)).trim();
+    return { type: plateType(url), url, thumb: (thumbs && thumbs[url]) || '',
+             caption: i<0 ? '' : l.slice(i+1).trim() };
+  }).filter(m => /^https?:\/\//.test(m.url));
+}
+const platesText = m => (m||[]).map(x => x.url + (x.caption ? ' | ' + x.caption : '')).join('\n');
+
+/* ---- storage: uploading plates ---- */
+const BUCKET = 'daybook';
+const MAX_PLATE = 50 * 1024 * 1024;   // Supabase caps a single upload at 50 MB
+const FULL_MAX = 2400, THUMB_MAX = 800, FULL_Q = .82, THUMB_Q = .72;
+// Animation and vectors do not survive a canvas round trip, so they pass through.
+const PASSTHROUGH = /^image\/(gif|svg\+xml)$/;
+function safeName(n){ return String(n||'file').toLowerCase().replace(/[^a-z0-9.]+/g,'-').replace(/^-|-$/g,'').slice(-60); }
+
+async function loadBitmap(file){
+  if(window.createImageBitmap){
+    try{ return await createImageBitmap(file); }catch(e){ /* fall through */ }
+  }
+  return await new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload  = () => { URL.revokeObjectURL(u); res(img); };
+    img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('could not read that image')); };
+    img.src = u;
+  });
+}
+function fit(bmp, max){
+  const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
+  const s = Math.min(1, max / Math.max(w0, h0));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w0*s)); c.height = Math.max(1, Math.round(h0*s));
+  const g = c.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(bmp, 0, 0, c.width, c.height);
+  return c;
+}
+const canvasBlob = (c, type, q) =>
+  new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('could not encode that image')), type, q));
+async function encode(canvas, q){
+  // Older Safari silently returns PNG when asked for WebP, so check what came back.
+  const webp = await canvasBlob(canvas, 'image/webp', q);
+  if(webp && webp.type === 'image/webp') return { blob:webp, ext:'webp' };
+  const jpg = await canvasBlob(canvas, 'image/jpeg', q);
+  return { blob:jpg, ext:'jpg' };
+}
+async function putObject(blob, path, type){
+  const { error } = await sb.storage.from(BUCKET)
+    .upload(path, blob, { cacheControl:'31536000', upsert:false, contentType:type||undefined });
+  if(error) throw error;
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+async function uploadPlate(file, stage){
+  if(!sb) throw new Error('not connected to the database');
+  if(file.size > MAX_PLATE) throw new Error('over 50 MB');
+  const base = `plates/${new Date().toISOString().slice(0,10)}/${uid()}`;
+  const say = s => stage && stage(s);
+
+  if(!file.type.startsWith('image/') || PASSTHROUGH.test(file.type)){
+    say('uploading');
+    return { url: await putObject(file, `${base}-${safeName(file.name)}`, file.type), thumb:'', from:file.size, to:file.size };
+  }
+  say('resizing');
+  const bmp = await loadBitmap(file);
+  const full  = await encode(fit(bmp, FULL_MAX),  FULL_Q);
+  const thumb = await encode(fit(bmp, THUMB_MAX), THUMB_Q);
+  if(bmp.close) bmp.close();
+  say('uploading');
+  const url      = await putObject(full.blob,  `${base}.${full.ext}`,   full.blob.type);
+  const thumbUrl = await putObject(thumb.blob, `${base}-t.${thumb.ext}`, thumb.blob.type);
+  return { url, thumb:thumbUrl, from:file.size, to:full.blob.size + thumb.blob.size };
+}
+const kb = n => n >= 1048576 ? (n/1048576).toFixed(1)+' MB' : Math.round(n/1024)+' KB';
+
+/* ---- downloading ---- */
+function fileNameFor(url){
+  try{ return decodeURIComponent(new URL(url).pathname.split('/').pop()) || 'plate'; }
+  catch(e){ return 'plate'; }
+}
+// Supabase Storage sets Content-Disposition when asked; cross-origin `download` is ignored otherwise.
+function downloadUrl(url){
+  if(!/\/storage\/v1\/object\/public\//.test(url)) return url;
+  return url + (url.includes('?') ? '&' : '?') + 'download=' + encodeURIComponent(fileNameFor(url));
+}
+function saveBlob(text, name, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+function postToMarkdown(p){
+  const fm = ['---', `title: ${p.title||''}`, `kind: ${p.kind}`,
+    `date: ${new Date(p.created).toISOString()}`, `tags: [${(p.tags||[]).join(', ')}]`];
+  if(p.source) fm.push(`source: ${p.source}`);
+  if(p.url) fm.push(`url: ${p.url}`);
+  if(p.media && p.media.length){
+    fm.push('media:');
+    p.media.forEach(m => fm.push(`  - ${m.url}${m.caption ? ' | ' + m.caption : ''}`));
+  }
+  fm.push('---','');
+  const heads = p.kind==='quote' ? `> ${p.body}\n${p.source?`\n— ${p.source}\n`:''}` : (p.body||'') + '\n';
+  return fm.join('\n') + heads;
+}
+function downloadPost(id){
+  const p = state.posts.find(x=>x.id===id); if(!p) return;
+  const slug = safeName(p.title || p.kind) || 'entry';
+  saveBlob(postToMarkdown(p), `${new Date(p.created).toISOString().slice(0,10)}-${slug}.md`, 'text/markdown');
+  toast('Entry downloaded as Markdown.');
+}
+
+/* ============================ 3. MOTIFS ============================ */
+const MOTIFS = {
+  lamps:(a,b)=>`<g fill="none" stroke="${b}" stroke-width="1.4"><path d="M18 44c0-6 5-9 12-9s12 3 12 9c0 5-5 8-12 8s-12-3-12-8z"/><path d="M30 35c0-6 4-8 4-12"/></g><circle cx="34" cy="21" r="4" fill="${a}"/><g fill="none" stroke="${b}" stroke-width="1.4" transform="translate(60,60)"><path d="M18 44c0-6 5-9 12-9s12 3 12 9c0 5-5 8-12 8s-12-3-12-8z"/><path d="M30 35c0-6 4-8 4-12"/></g><circle cx="94" cy="81" r="4" fill="${a}"/>`,
+  splash:(a,b)=>`<circle cx="24" cy="26" r="9" fill="${a}"/><circle cx="76" cy="44" r="6" fill="${b}"/><circle cx="46" cy="78" r="11" fill="${b}"/><circle cx="94" cy="94" r="5" fill="${a}"/><circle cx="8" cy="66" r="4" fill="${b}"/><circle cx="64" cy="10" r="4" fill="${a}"/>`,
+  snow:(a,b)=>`<g stroke="${a}" stroke-width="1.3" fill="none"><path d="M30 14v32M16 30h28M20 20l20 20M40 20L20 40"/></g><g stroke="${b}" stroke-width="1.1" fill="none" transform="translate(58,56) scale(.68)"><path d="M30 14v32M16 30h28M20 20l20 20M40 20L20 40"/></g>`,
+  lunar:(a,b)=>`<circle cx="34" cy="34" r="17" fill="none" stroke="${a}" stroke-width="1.2"/><circle cx="28" cy="29" r="4" fill="${b}" opacity=".7"/><circle cx="40" cy="41" r="2.5" fill="${b}" opacity=".7"/><circle cx="92" cy="88" r="9" fill="none" stroke="${b}" stroke-width="1.2"/><circle cx="88" cy="24" r="1.6" fill="${a}"/><circle cx="16" cy="94" r="1.6" fill="${a}"/>`,
+  leaf:(a,b)=>`<g fill="none" stroke="${a}" stroke-width="1.3"><path d="M20 60C20 34 40 20 58 20 58 44 40 60 20 60z"/><path d="M22 58C34 46 46 34 56 22"/></g><g fill="none" stroke="${b}" stroke-width="1.2" transform="translate(58,50) scale(.7) rotate(28 40 40)"><path d="M20 60C20 34 40 20 58 20 58 44 40 60 20 60z"/><path d="M22 58C34 46 46 34 56 22"/></g>`,
+  wave:(a,b)=>`<g fill="none" stroke-width="1.4"><path d="M0 32q15 -13 30 0t30 0 30 0 30 0" stroke="${a}"/><path d="M0 66q15 -13 30 0t30 0 30 0 30 0" stroke="${b}"/><path d="M0 100q15 -13 30 0t30 0 30 0 30 0" stroke="${a}"/></g>`,
+  bloom:(a,b)=>`<g fill="${a}" opacity=".85"><circle cx="30" cy="24" r="5"/><circle cx="40" cy="32" r="5"/><circle cx="30" cy="40" r="5"/><circle cx="20" cy="32" r="5"/></g><circle cx="30" cy="32" r="3" fill="${b}"/><g fill="${b}" opacity=".7" transform="translate(52,54) scale(.75)"><circle cx="30" cy="24" r="5"/><circle cx="40" cy="32" r="5"/><circle cx="30" cy="40" r="5"/><circle cx="20" cy="32" r="5"/></g>`,
+  stars:(a,b)=>`<path d="M30 16l3.2 9.4 9.8.2-7.8 6 2.8 9.5-8-5.7-8 5.7 2.8-9.5-7.8-6 9.8-.2z" fill="${a}"/><path d="M88 74l2.2 6.4 6.8.2-5.4 4.2 1.9 6.6-5.5-4-5.5 4 1.9-6.6-5.4-4.2 6.8-.2z" fill="${b}"/><circle cx="76" cy="24" r="1.8" fill="${a}"/><circle cx="18" cy="86" r="1.8" fill="${b}"/>`,
+  weave:(a,b)=>`<g stroke-width="1" fill="none"><path d="M0 0h120M0 30h120M0 60h120M0 90h120" stroke="${a}"/><path d="M0 0v120M30 0v120M60 0v120M90 0v120" stroke="${b}"/></g>`,
+  wheel:(a,b)=>`<g transform="translate(60,60)"><circle r="26" fill="none" stroke="${a}" stroke-width="1.4"/><circle r="5" fill="none" stroke="${b}" stroke-width="1.4"/><g stroke="${b}" stroke-width="1"><path d="M0-26V-6M0 26V6M-26 0h20M26 0H6M-18-18l14 14M18 18L4 4M18-18L4-4M-18 18l14-14"/></g></g>`,
+  confetti:(a,b)=>`<g stroke-width="2.4" stroke-linecap="round"><path d="M14 20l7-9" stroke="${a}"/><path d="M52 44l6 8" stroke="${b}"/><path d="M92 16l-5 9" stroke="${a}"/><path d="M30 78l8-5" stroke="${b}"/><path d="M74 92l4 9" stroke="${a}"/><path d="M104 62l-8 4" stroke="${b}"/></g>`
+};
+function motifCSS(name, a, b){
+  const f = MOTIFS[name] || MOTIFS.weave;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">${f(a,b)}</svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+/* ============================ 4. THEMES ============================ */
+const F = {
+  fraunces:"'Fraunces',Georgia,serif", instrument:"'Instrument Serif',Georgia,serif",
+  cormorant:"'Cormorant Garamond',Georgia,serif", syne:"'Syne','Helvetica Neue',sans-serif",
+  dm:"'DM Sans',system-ui,sans-serif", mono:"'Space Mono',ui-monospace,monospace"
+};
+// paper, ink, soft, accent, accent2, surface, line
+function T(id,name,why,motif,p,display,body,opacity){
+  return {id,name,why,motif,p,display:display||F.fraunces,body:body||F.dm,opacity:opacity==null?.5:opacity};
+}
+const THEMES = {};
+[
+  T('newyear','First Light','A new year opens — deep night, gilt edges, everything still unwritten.','confetti',
+    ['#12141d','#f2ede0','#9a9686','#e0b664','#7f9fd4','#1b1e2a','#2c2f3d'],F.fraunces,F.dm,.55),
+  T('republic','Republic','26 January — the Constitution came into force in 1950.','wheel',
+    ['#fdfaf3','#1d2b22','#6d7a6f','#d97a1f','#136c4c','#ffffff','#dfd9c9']),
+  T('darwin','Origin','12 February — Darwin\'s birthday. Sepia notebooks and finch beaks.','leaf',
+    ['#efe8d8','#2e2a20','#736c58','#7a6534','#4a5c39','#faf6ea','#d7cdb6'],F.cormorant),
+  T('valentine','Ardour','14 February — ink turns a little warmer than usual.','bloom',
+    ['#fbf0f0','#3a1c22','#8a6a70','#c03a52','#8e5a7a','#fff8f8','#eed4d6'],F.instrument),
+  T('holi','Gulal','Holi — the one day the palette refuses to behave.','splash',
+    ['#fffdf5','#221f2b','#6b6579','#d62a6b','#1a9e8f','#ffffff','#e8e2d6'],F.syne,F.dm,.6),
+  T('piday','Ratio','14 March — π day. Chalk dust and endless decimals.','weave',
+    ['#1e2422','#eef2ee','#93a09a','#7ec9a1','#dcd07a','#27302d','#39433f'],F.mono,F.dm,.45),
+  T('equinox','Equinox','Day and night in balance — the year exhales.','bloom',
+    ['#f4f8ef','#22301f','#69775f','#4d8f3c','#a4762c','#fdfffa','#d8e2cd']),
+  T('earthday','Blue Marble','22 April — one small planet, photographed from far away.','wave',
+    ['#eef4f6','#12262e','#5c7a83','#1c6e8c','#3f8f5f','#fbfeff','#cfdde2']),
+  T('mayday','Workers','1 May — poster ink, thick and unapologetic.','weave',
+    ['#f7f1e6','#241a16','#6f6055','#b32a20','#3a4a2e','#fffaf2','#e0d3c1'],F.syne),
+  T('solstice','Longest Day','Solstice — the sun overstays its welcome, gloriously.','stars',
+    ['#fff8e8','#2c2211','#7d6a48','#d98b12','#b3521c','#fffdf6','#eadfc2']),
+  T('moon','Sea of Tranquility','20 July 1969 — the first footprints somewhere other than here.','lunar',
+    ['#0d1014','#e8ecf0','#8d949c','#c9d3dd','#6f8ba8','#161b21','#252c35'],F.syne,F.dm,.5),
+  T('independence','Tiranga','15 August — Independence Day.','wheel',
+    ['#fffdf6','#1c2b25','#6d7a70','#e07b1a','#0d7a52','#ffffff','#e2ddcd']),
+  T('teachers','Chalk','5 September — Teachers\' Day. Slate, chalk, patience.','weave',
+    ['#1f2725','#eef0e9','#98a09a','#e4cf8a','#89b0a2','#28312e','#3a4340'],F.cormorant,F.dm,.4),
+  T('gandhi','Khadi','2 October — homespun cloth, plain weave, plain speech.','weave',
+    ['#f7f5ee','#26251f','#75726a','#6b6a3f','#3f5c55','#fffefa','#ddd9cc'],F.cormorant),
+  T('halloween','All Hallows','31 October — the lamps are lit for other reasons tonight.','stars',
+    ['#141014','#f0e6d8','#918476','#e07a22','#7a4f9c','#1d181e','#2e2630'],F.fraunces,F.dm,.5),
+  T('diwali','Deepavali','Diwali — rows of lamps against the darkest night of the month.','lamps',
+    ['#171227','#f6e9cf','#a09479','#e8b53c','#c0507a','#211a34','#33294c'],F.fraunces,F.dm,.6),
+  T('childrens','Bal Diwas','14 November — Children\'s Day. Bright, loud, unserious.','confetti',
+    ['#fffcf2','#1f2430','#6c7280','#2f6fd0','#e2536b','#ffffff','#e3e0d3'],F.syne),
+  T('thanksgiving','Harvest','The table is long and the year is nearly folded away.','leaf',
+    ['#f7efe2','#2b2016','#7a6a58','#a8551f','#5c6435','#fffaf0','#e3d7c2']),
+  T('christmas','Midwinter','25 December — pine, candlelight, and a very early morning.','snow',
+    ['#f4f6f2','#17251d','#5f6f64','#a3202c','#1f5c3c','#ffffff','#d5ddd4']),
+  T('nye','Last Page','31 December — the notebook closes, briefly.','confetti',
+    ['#101014','#eceaf2','#8e8c99','#c8b273','#8f8fb5','#1a1a20','#2b2b34'],F.instrument,F.dm,.5),
+
+  // ---- everyday pool ----
+  T('morningink','Morning Ink','No festival today — just clean paper and a sharp nib.','weave',
+    ['#f7f5f0','#1a1a18','#6a6862','#1f6f66','#8a5a2b','#ffffff','#e0ddd4'],F.fraunces,F.dm,.35),
+  T('monsoon','Monsoon','Grey light, wet streets, good weather for writing indoors.','wave',
+    ['#eef1f3','#1b2429','#61707a','#2b6b8f','#4d7a6a','#fbfdfe','#d3dbdf']),
+  T('terracotta','Terracotta','Warm clay, low sun, the slow end of a season.','leaf',
+    ['#f8f0e6','#2a1f18','#7a6a5c','#9c4a25','#5c6440','#fffaf3','#e4d7c6']),
+  T('frost','Frost','Cold, clear, quiet — the pages feel crisper.','snow',
+    ['#f0f4f7','#161d24','#5e6c78','#31627f','#6a5f8a','#fdfeff','#d6dee5']),
+  T('saffron','Saffron Dusk','Late amber light across the desk.','stars',
+    ['#fff6e9','#2b2113','#7c6a4e','#c47a12','#8a4326','#fffcf5','#ead9bd']),
+  T('botanical','Botanical','Green everywhere — even in the margins.','bloom',
+    ['#f2f6ee','#1e2a1c','#64755f','#3f7d43','#8a6a2c','#fcfdfa','#d7e0d0']),
+  T('nightshift','Night Shift','Everyone else is asleep. That is rather the point.','weave',
+    ['#0f1113','#e6e9ea','#878e92','#8fd17a','#79a8d1','#171a1d','#252a2e'],F.syne,F.dm,.35),
+  T('papyrus','Papyrus','Old paper, older ideas, fresh handwriting.','weave',
+    ['#f6efe0','#2b2417','#786c52','#8a6224','#4d5f4a','#fffaee','#ded2b8'],F.cormorant),
+  T('cobalt','Cobalt','A deep blue day. Sharp edges, clear head.','wave',
+    ['#eef1f8','#131a2b','#5e6883','#2545a0','#a04a6b','#fdfdff','#d2d8e8'],F.syne),
+  T('quartz','Rose Quartz','Soft light, softer opinions.','bloom',
+    ['#faf1f4','#2a1e24','#7a6a70','#a8446c','#6a5a94','#fffafc','#e8d8de'],F.instrument)
+].forEach(t => THEMES[t.id]=t);
+
+const EVERYDAY = {
+  spring:['morningink','botanical','quartz','papyrus','cobalt','nightshift'],
+  summer:['monsoon','saffron','morningink','botanical','nightshift','cobalt'],
+  autumn:['terracotta','saffron','papyrus','morningink','nightshift','monsoon'],
+  winter:['frost','cobalt','papyrus','nightshift','morningink','quartz']
+};
+
+// Fixed-date events (MM-DD) and movable ones (YYYY-MM-DD).
+// Movable festivals follow lunar/lunisolar calendars — edit this list to keep it accurate.
+const CALENDAR = {
+  '01-01':'newyear','01-26':'republic','02-12':'darwin','02-14':'valentine','03-14':'piday',
+  '03-20':'equinox','03-21':'equinox','04-22':'earthday','05-01':'mayday','06-21':'solstice',
+  '07-20':'moon','08-15':'independence','09-05':'teachers','10-02':'gandhi','10-31':'halloween',
+  '11-14':'childrens','12-25':'christmas','12-31':'nye',
+  // movable — verify each year
+  '2026-03-04':'holi','2027-03-22':'holi','2028-03-11':'holi',
+  '2026-11-08':'diwali','2027-10-29':'diwali','2028-10-17':'diwali',
+  '2026-11-26':'thanksgiving','2027-11-25':'thanksgiving','2028-11-23':'thanksgiving'
+};
+function seasonOf(m){ return m<=1||m===11 ? 'winter' : m<=4 ? 'spring' : m<=7 ? 'summer' : 'autumn'; }
+function resolveTheme(d){
+  const p = n => String(n).padStart(2,'0');
+  const ymd = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const md = ymd.slice(5);
+  const id = CALENDAR[ymd] || CALENDAR[md];
+  if(id && THEMES[id]) return THEMES[id];
+  const pool = EVERYDAY[seasonOf(d.getMonth())];
+  const doy = Math.floor((d - new Date(d.getFullYear(),0,0)) / 864e5);
+  return THEMES[pool[doy % pool.length]];
+}
+function applyTheme(t){
+  const [paper,ink,soft,accent,accent2,surface,line] = t.p;
+  const r = document.documentElement.style;
+  r.setProperty('--paper',paper); r.setProperty('--ink',ink); r.setProperty('--soft',soft);
+  r.setProperty('--accent',accent); r.setProperty('--accent2',accent2);
+  r.setProperty('--surface',surface); r.setProperty('--line',line);
+  r.setProperty('--display',t.display); r.setProperty('--body',t.body);
+  r.setProperty('--motif', motifCSS(t.motif, accent, accent2));
+  r.setProperty('--motif-opacity', t.opacity);
+  const today = new Date();
+  const isToday = t.id === resolveTheme(today).id;
+  $('#c-date').textContent = today.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    + (isToday ? '' : ' · previewing');
+  $('#c-name').textContent = t.name;
+  $('#c-why').textContent = t.why;
+  $('#c-swatches').innerHTML = [accent,accent2,ink,surface].map(c=>`<i class="sw" style="background:${c}"></i>`).join('');
+  document.querySelector('meta[name="theme-color"]')?.remove();
+  state.theme = t;
+}
+
+/* ============================ 5. STATE ============================ */
+const state = { posts:[], comments:{}, cat:null, kind:null, q:'', view:{name:'feed'},
+                author:false, theme:null, draftTags:[], draftThumbs:{}, layout:'column' };
+const KINDS = [
+  {id:'post', label:'Writing'}, {id:'quote', label:'Quotes'},
+  {id:'jot', label:'Jots'}, {id:'image', label:'Pictures'}, {id:'video', label:'Videos'}, {id:'link', label:'Links'}
+];
+const kindLabel = k => (KINDS.find(x=>x.id===k)||{label:'Entry'}).label.replace(/s$/,'');
+
+const SEED = [
+  {id:uid(), kind:'post', title:'Why I keep a daybook', body:"I used to keep ideas in six places: a notes app, three notebooks, a chat with myself, and the back of receipts. None of them talked to each other.\n\nThis is the seventh place, and the last one. The rule is simple — write the thing down the day you think it, tag it honestly, and let the tags do the filing.\n\n## The rules\n- One entry, one idea.\n- Tag it the way you'd search for it in a year.\n- Never delete a bad idea. Downgrade it to a jot.\n\n> The point of writing daily is not the writing. It's the noticing.", media:[], tags:['life','writing','habits'], created:Date.now()-864e5*4, updated:Date.now()-864e5*4},
+  {id:uid(), kind:'quote', title:'', body:'We are a way for the cosmos to know itself.', source:'Carl Sagan, Cosmos', media:[], tags:['science','space'], created:Date.now()-864e5*3, updated:Date.now()-864e5*3},
+  {id:uid(), kind:'jot', title:'', body:'Idea: a recipe index where every dish is tagged by the mood it fixes, not the cuisine it belongs to.', media:[], tags:['food','ideas'], created:Date.now()-864e5*2, updated:Date.now()-864e5*2},
+  {id:uid(), kind:'video', title:'How a CPU actually executes an instruction', body:'Twenty minutes that finally made the fetch–decode–execute cycle click for me. Worth it for the pipeline animation alone.', url:'https://www.youtube.com/watch?v=cNN_tTXABUA', media:[], tags:['tech','computing','learning'], created:Date.now()-864e5, updated:Date.now()-864e5},
+  {id:uid(), kind:'post', title:'Notes on painting with a limited palette', body:"Four tubes, no more: titanium white, yellow ochre, cadmium red, ultramarine. Every colour I need is somewhere in the space between them.\n\nThe constraint does something strange — it stops the decision paralysis and moves the whole problem into value and edge instead of hue. My paintings got worse for two weeks and then noticeably better.", media:[], tags:['painting','arts','process'], created:Date.now()-3600e3*6, updated:Date.now()-3600e3*6},
+  {id:uid(), kind:'post', title:'Four rolls from the Kochi trip',
+   body:'Shot on a camera older than the phone in my pocket. The light does something to lime-washed walls that I have never managed to get out of a sensor.',
+   tags:['photography','travel'],
+   media:[
+     {type:'image', url:'https://picsum.photos/seed/kochi1/1200/800', caption:'Fort Kochi, 6am'},
+     {type:'image', url:'https://picsum.photos/seed/kochi2/900/900', caption:''},
+     {type:'image', url:'https://picsum.photos/seed/kochi3/900/900', caption:''},
+     {type:'image', url:'https://picsum.photos/seed/kochi4/900/900', caption:''},
+     {type:'image', url:'https://picsum.photos/seed/kochi5/900/900', caption:''}
+   ],
+   created:Date.now()-3600e3*2, updated:Date.now()-3600e3*2},
+  {id:uid(), kind:'post', title:'Two on typesetting',
+   body:'Watched back to back. The second is worth it for the last four minutes alone.',
+   tags:['design','typography'],
+   media:[
+     {type:'video', url:'https://www.youtube.com/watch?v=sTMc0iZ5-cs', caption:'Metal type, start to finish'},
+     {type:'video', url:'https://www.youtube.com/watch?v=cNN_tTXABUA', caption:'Why kerning is hard'}
+   ],
+   created:Date.now()-3600e3*5, updated:Date.now()-3600e3*5}
+];
+
+/* ============================ 6. DERIVED ============================ */
+function categories(){
+  const map = new Map();
+  for(const p of state.posts) for(const t of (p.tags||[])){
+    const k = norm(t); if(!k) continue;
+    map.set(k, (map.get(k)||0)+1);
+  }
+  return [...map.entries()].sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]));
+}
+function visiblePosts(){
+  const q = state.q.trim().toLowerCase();
+  return state.posts
+    .filter(p => !state.cat || (p.tags||[]).some(t=>norm(t)===state.cat))
+    .filter(p => !state.kind || p.kind===state.kind)
+    .filter(p => !q || [p.title,p.body,p.source,(p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=> b.created - a.created);
+}
+const commentsFor = id => (state.comments[id]||[]);
+
+/* ============================ 7. RENDER ============================ */
+function renderRail(){
+  const cats = categories();
+  $('#catcount').textContent = cats.length ? cats.length : '';
+  const box = $('#cats');
+  if(!cats.length){ box.innerHTML = '<p class="empty-rail">No categories yet. They appear here the moment you tag an entry.</p>'; return; }
+  box.innerHTML = `<button class="cat" data-cat="" aria-current="${!state.cat}">
+      <span class="dot" style="background:var(--soft)"></span>Everything<span class="n">${state.posts.length}</span></button>` +
+    cats.map(([c,n])=>`<button class="cat" data-cat="${esc(c)}" aria-current="${state.cat===c}">
+      <span class="dot" style="background:${tagColor(c)}"></span>${esc(titleCase(c))}<span class="n">${n}</span></button>`).join('');
+}
+function renderKinds(){
+  $('#kinds').innerHTML = KINDS.map(k=>`<button class="chipbtn" data-kind="${k.id}" aria-pressed="${state.kind===k.id}">${k.label}</button>`).join('');
+}
+function tagsHTML(tags){
+  if(!tags||!tags.length) return '';
+  return `<div class="tagrow">` + tags.map(t=>`<button class="tag" data-tag="${esc(norm(t))}" style="--tc:${tagColor(t)}">${esc(titleCase(t))}</button>`).join('') + `</div>`;
+}
+function plateHTML(media, opts){
+  const o = opts || {};
+  const m = (media||[]).filter(x=>x && x.url);
+  if(!m.length) return '';
+  const shown = m.slice(0,4), rest = m.length - shown.length;
+  const cls = ['','one','two','three','four'][shown.length];
+  const caps = o.caps !== false;
+  // The feed shows thumbnails; the leaf and reader show the full plate.
+  const src = x => (o.small && x.thumb) ? x.thumb : x.url;
+  return `<div class="plates ${cls}">` + shown.map((x,i)=>{
+    const overlay = (i===shown.length-1 && rest>0) ? `<span class="rest">+${rest}</span>` : '';
+    const label = (caps && x.caption) ? `<span class="cap">${esc(x.caption)}</span>` : '';
+    const dl = `<a class="plate-dl" href="${esc(downloadUrl(x.url))}" download="${esc(fileNameFor(x.url))}"
+      target="_blank" rel="noopener" title="Download" aria-label="Download ${esc(x.caption||'this plate')}">&darr;</a>`;
+    if(x.type==='clip'){
+      return `<figure class="plate clip">
+        <video src="${esc(x.url)}" controls preload="metadata" playsinline></video>${label}${dl}${overlay}</figure>`;
+    }
+    if(x.type==='video'){
+      const vm = videoMeta(x.url);
+      const poster = vm && vm.poster
+        ? `<img src="${esc(vm.poster)}" alt="${esc(x.caption||'Video')}" loading="lazy">` : '';
+      return `<button class="plate vid" data-play="${esc(x.url)}" aria-label="Play ${esc(x.caption||'video')}">
+        ${poster}<span class="play"><i></i></span>${label}${overlay}</button>`;
+    }
+    return `<figure class="plate">
+      <img src="${esc(src(x))}" alt="${esc(x.caption||'')}" loading="lazy">${label}${dl}${overlay}</figure>`;
+  }).join('') + `</div>`;
+}
+function entryBody(p){
+  if(p.kind==='quote'){
+    return `<blockquote class="pullquote">“${esc(p.body)}”</blockquote>` + (p.source?`<div class="attrib">— ${esc(p.source)}</div>`:'');
+  }
+  if(p.kind==='jot'){ return `<div class="jot">${esc(p.body)}</div>`; }
+  if(p.kind==='link'){
+    return `<h3 class="entry-title"><button data-open="${p.id}">${esc(p.title||p.url)}</button></h3>`
+      + (p.body?`<p class="excerpt">${esc(p.body.slice(0,220))}</p>`:'')
+      + (p.url?`<div class="attrib">${esc(p.url.replace(/^https?:\/\//,'').slice(0,60))}</div>`:'');
+  }
+  // A picture or a clip with no title speaks for itself — don't invent "Untitled".
+  const silent = (p.kind==='image'||p.kind==='video') && !p.title;
+  const first = (p.body||'').split(/\n\s*\n/)[0].replace(/^#+\s*/,'');
+  return (silent ? '' : `<h3 class="entry-title"><button data-open="${p.id}">${esc(p.title||'Untitled')}</button></h3>`)
+    + (first ? `<p class="excerpt">${esc(first.slice(0,240))}${first.length>240?'…':''}</p>` : '');
+}
+function renderFeed(){
+  const posts = visiblePosts();
+  const v = $('#view');
+  if(!posts.length){
+    v.innerHTML = `<div class="blank"><h3>Nothing filed here yet</h3>
+      <p>${state.q||state.cat||state.kind ? 'Try a different category, kind, or search term.' : 'Turn on Write in the sidebar and start the first entry.'}</p></div>`;
+    return;
+  }
+  const grid = state.layout === 'gathering';   // stream is the default
+  v.innerHTML = `<div id="feed" class="${grid?'gathering':''}">` + posts.map(p=>{
+    const cn = commentsFor(p.id).length;
+    const tint = (p.tags && p.tags[0]) ? tagColor(p.tags[0]) : 'var(--accent)';
+    return `<article class="entry" style="--tc:${tint}">
+      <div class="slip">
+        <span class="stamp">${kindLabel(p.kind)}<time>${fmtDate(p.created)}</time></span>
+        ${plateHTML(p.media, {small:true})}
+        ${entryBody(p)}
+        ${tagsHTML(p.tags)}
+        <div class="entryfoot">
+          <button class="linkbtn" data-open="${p.id}">Read &amp; comment</button>
+          <span>${cn} comment${cn===1?'':'s'}</span>
+          ${state.author?`<button class="linkbtn" data-edit="${p.id}">Edit</button>`:''}
+        </div>
+      </div>
+    </article>`;
+  }).join('') + `</div>`;
+}
+// The readable guts of an entry, shared by the reader and the leaf.
+function entryLong(p){
+  const head = p.kind==='quote'
+    ? `<blockquote class="pullquote" style="margin-top:14px">“${esc(p.body)}”</blockquote>${p.source?`<div class="attrib">— ${esc(p.source)}</div>`:''}`
+    : `<h1>${esc(p.title||'Untitled')}</h1>`;
+  const plates = p.media && p.media.length ? `<div style="margin:22px 0">${plateHTML(p.media)}</div>` : '';
+  const body = p.kind==='quote' ? '' :
+    p.kind==='jot' ? `<div class="jot">${esc(p.body)}</div>` :
+    `<div class="prose">${mdToHtml(p.body)}</div>`;
+  const link = p.url && p.kind==='link' ? `<p class="prose"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Open the original ↗</a></p>` : '';
+  return { head, plates, body, link };
+}
+function renderReader(id){
+  const p = state.posts.find(x=>x.id===id);
+  if(!p){ state.view={name:'feed'}; render(); return; }
+  const { head, plates, body, link } = entryLong(p);
+  const tint = (p.tags && p.tags[0]) ? tagColor(p.tags[0]) : 'var(--accent)';
+  $('#view').innerHTML = `<article id="reader" style="--tc:${tint}">
+    <button class="back" id="back">← All entries</button>
+    <div class="readgrid">
+      <div class="readmain">
+        ${head}
+        <div class="byline">${kindLabel(p.kind)} · ${fmtDate(p.created)} · <button class="linkbtn" data-dl="${p.id}">Download</button>${state.author?' · <button class="linkbtn" data-edit="'+p.id+'">Edit this entry</button>':''}</div>
+        ${plates}${body}${link}
+        ${tagsHTML(p.tags)}
+      </div>
+      <aside id="comments">
+      <h3>Responses</h3>
+      <p class="nosignup">No account, no email, no sign-up. Leave a name you like and say your piece.</p>
+      <div class="cform">
+        <input id="c-name-in" maxlength="40" placeholder="Your name" aria-label="Your name">
+        <textarea id="c-body-in" maxlength="1500" placeholder="What did this make you think?" aria-label="Your comment"></textarea>
+        <input class="hp" id="c-hp" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="Leave blank">
+        <div class="row"><button class="primary" id="c-send">Post comment</button>
+        <span class="hint" style="margin:0">Comments are public and appear straight away.</span></div>
+      </div>
+      <div id="clist"></div>
+      </aside>
+    </div>
+  </article>`;
+  renderComments(p.id);
+}
+function renderComments(id){
+  const list = commentsFor(id).slice().sort((a,b)=>a.ts-b.ts);
+  $('#clist').innerHTML = list.length ? list.map(c=>`
+    <div class="comment">
+      <div class="avatar" style="background:hsl(${hueFor(c.name)} 55% 42%)">${esc((c.name||'?').trim().charAt(0).toUpperCase())}</div>
+      <div><div class="cmeta"><b>${esc(c.name)}</b>${ago(c.ts)}${state.author?` · <button class="linkbtn" data-delc="${esc(c.id)}">Remove</button>`:''}</div><p class="cbody">${esc(c.body)}</p></div>
+    </div>`).join('')
+    : `<p class="hint">No responses yet — yours would be the first.</p>`;
+}
+function render(){
+  renderRail(); renderKinds();
+  $('#btn-new').hidden = !state.author;
+  $('#btn-layout').setAttribute('aria-pressed', state.layout==='gathering');
+  $('#toolbar').style.display = state.view.name==='feed' ? '' : 'none';
+  if(state.view.name==='feed') renderFeed(); else renderReader(state.view.id);
+}
+
+/* ============================ 7b. LEAF ============================ */
+const REDUCED = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COARSE  = () => window.matchMedia('(hover: none)').matches;
+let leafOpen = null;
+
+/* Entrance profiles. Each returns [keyframes, options]; `f` is the FLIP
+   transform that maps the leaf back onto the card that was clicked. */
+const LEAF_ANIM = {
+  lift: f => [[{transform:f, opacity:.4},{transform:'none', opacity:1}],
+              {duration:380, easing:'cubic-bezier(.22,1,.36,1)'}],
+  unfold: f => [[{transform:f+' rotateX(-16deg)', opacity:0, transformOrigin:'top center'},
+                 {transform:'none', opacity:1, transformOrigin:'top center'}],
+                {duration:460, easing:'cubic-bezier(.16,1,.3,1)'}],
+  develop: f => [[{transform:f, opacity:0, filter:'blur(16px) saturate(.35)'},
+                  {transform:'none', opacity:1, filter:'blur(0) saturate(1)'}],
+                 {duration:480, easing:'cubic-bezier(.25,1,.35,1)'}],
+  iris: (f,pt) => [[{transform:f, opacity:.2, clipPath:`circle(6% at ${pt.x}% ${pt.y}%)`},
+                    {transform:'none', opacity:1, clipPath:`circle(140% at ${pt.x}% ${pt.y}%)`}],
+                   {duration:440, easing:'cubic-bezier(.2,.9,.25,1)'}]
+};
+/* A stored p.anim wins. Otherwise the entry picks its own by shape. */
+function pickAnim(p){
+  if(p.anim && LEAF_ANIM[p.anim]) return p.anim;
+  const shots = (p.media||[]).filter(m=>m.type==='image').length;
+  if(shots >= 2) return 'develop';
+  if(p.kind==='quote' || p.kind==='jot') return 'iris';
+  if(p.kind==='post' && (p.body||'').length > 600) return 'unfold';
+  return 'lift';
+}
+
+function openLeaf(id, fromEl, origin){
+  if(leafOpen) return;
+  const p = state.posts.find(x=>x.id===id);
+  if(!p) return;
+  const { head, plates, body, link } = entryLong(p);
+  const cn = commentsFor(p.id).length;
+  const tint = (p.tags && p.tags[0]) ? tagColor(p.tags[0]) : 'var(--accent)';
+
+  const scrim = document.createElement('div');
+  scrim.id = 'leafscrim';
+  scrim.innerHTML = `<div class="leaf" style="--tc:${tint}" role="dialog" aria-modal="true" aria-label="${esc(p.title||kindLabel(p.kind))}">
+    <div class="leaf-head">
+      <span class="stamp">${kindLabel(p.kind)}<time>${fmtDate(p.created)}</time></span>
+      <button class="leaf-x" aria-label="Close">&times;</button>
+    </div>
+    <div class="leaf-body" tabindex="0">
+      ${head}
+      ${plates}${body}${link}
+      ${tagsHTML(p.tags)}
+    </div>
+    <div class="leaf-foot">
+      <span>${cn} response${cn===1?'':'s'}</span>
+      <button class="linkbtn" data-dl="${p.id}">Download</button>
+      <button class="primary" data-open="${p.id}">Read &amp; respond</button>
+    </div>
+  </div>`;
+  document.body.appendChild(scrim);
+  const leaf = scrim.querySelector('.leaf');
+  const lock = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+
+  let anim = null;
+  if(fromEl && !REDUCED()){
+    const from = fromEl.getBoundingClientRect(), to = leaf.getBoundingClientRect();
+    const flip = `translate(${from.left-to.left}px,${from.top-to.top}px) scale(${from.width/to.width},${from.height/to.height})`;
+    const pt = origin
+      ? { x: Math.round((origin.x-to.left)/to.width*100), y: Math.round((origin.y-to.top)/to.height*100) }
+      : { x:50, y:50 };
+    const [frames, opts] = LEAF_ANIM[pickAnim(p)](flip, pt);
+    scrim.animate([{opacity:0},{opacity:1}], {duration:220, easing:'ease', fill:'both'});
+    anim = leaf.animate(frames, {...opts, fill:'both'});
+  }
+
+  const close = () => {
+    if(leafOpen !== close) return;
+    leafOpen = null;
+    document.body.style.overflow = lock;
+    document.removeEventListener('keydown', onKey);
+    if(anim){
+      scrim.animate([{opacity:1},{opacity:0}], {duration:180, easing:'ease', fill:'both'});
+      anim.reverse();
+      anim.finished.then(()=>scrim.remove(), ()=>scrim.remove());
+    } else scrim.remove();
+  };
+  const onKey = e => { if(e.key==='Escape'){ e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey);
+  scrim.addEventListener('mousedown', e=>{ if(e.target===scrim) close(); });
+  scrim.querySelector('.leaf-x').onclick = close;
+  scrim.querySelector('[data-open]').addEventListener('click', close, {capture:true});
+  leafOpen = close;
+  setTimeout(()=>scrim.querySelector('.leaf-body').focus(), 40);
+  return close;
+}
+function closeLeaf(){ if(leafOpen) leafOpen(); }
+
+/* Single click peeks, double click opens fully. The timer is what separates
+   them: a lone click waits to see whether a second one is coming. */
+let clickWait = null;
+document.addEventListener('click', e=>{
+  if(leafOpen) return;
+  const slip = e.target.closest('.slip');
+  if(!slip || e.target.closest('button, a, input, textarea, select, iframe')) return;
+  const entry = slip.closest('.entry');
+  const id = (entry && entry.querySelector('[data-open]') || {}).dataset?.open;
+  if(!id) return;
+  // Coarse pointers have no reliable double-tap, so a tap always peeks and the
+  // leaf's own button carries them the rest of the way.
+  if(COARSE()){ openLeaf(id, slip, {x:e.clientX, y:e.clientY}); return; }
+  if(clickWait){ clearTimeout(clickWait); clickWait = null; state.view={name:'post', id}; render(); window.scrollTo({top:0}); return; }
+  const pt = {x:e.clientX, y:e.clientY};
+  clickWait = setTimeout(()=>{ clickWait = null; openLeaf(id, slip, pt); }, 240);
+});
+
+/* ============================ 7c. COMPOSITOR ============================ */
+/* Suggestions from Gemini, via the edge function that holds the key.
+   Nothing here writes to the entry — every result needs a click to accept. */
+const AI_URL = SUPABASE_URL + '/functions/v1/compositor';
+async function askCompositor(task, payload){
+  if(!sb || !PASS) throw new Error('unlock writing first');
+  const res = await fetch(AI_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', apikey:SUPABASE_ANON_KEY,
+              Authorization:'Bearer ' + SUPABASE_ANON_KEY },
+    body: JSON.stringify({ pass:PASS, task, payload })
+  });
+  const j = await res.json().catch(()=>({error:'the compositor did not reply'}));
+  if(!res.ok || j.error) throw new Error(j.error || `error ${res.status}`);
+  return j.result;
+}
+// Word-level diff so an edit can be read before it is accepted.
+function wordDiff(a, b){
+  const A = String(a).split(/(\s+)/), B = String(b).split(/(\s+)/);
+  const n = A.length, m = B.length;
+  const L = Array.from({length:n+1}, ()=> new Uint32Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--)
+    L[i][j] = A[i]===B[j] ? L[i+1][j+1]+1 : Math.max(L[i+1][j], L[i][j+1]);
+  let i=0, j=0, out='';
+  const wrap = (cls,t) => t.trim() ? `<${cls}>${esc(t)}</${cls}>` : esc(t);
+  while(i<n && j<m){
+    if(A[i]===B[j]){ out+=esc(A[i]); i++; j++; }
+    else if(L[i+1][j] >= L[i][j+1]){ out+=wrap('del',A[i]); i++; }
+    else { out+=wrap('ins',B[j]); j++; }
+  }
+  while(i<n) out+=wrap('del',A[i++]);
+  while(j<m) out+=wrap('ins',B[j++]);
+  return out;
+}
+
+/* ============================ 8. EDITOR ============================ */
+function openEditor(id){
+  const p = id ? state.posts.find(x=>x.id===id) : null;
+  state.draftTags = p ? (p.tags||[]).map(norm) : [];
+  state.draftThumbs = {};
+  if(p) (p.media||[]).forEach(m => { if(m.thumb) state.draftThumbs[m.url] = m.thumb; });
+  const scrim = document.createElement('div');
+  scrim.className='scrim';
+  scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${p?'Edit entry':'New entry'}">
+    <h3>${p?'Edit entry':'New entry'}</h3>
+    <div class="field"><label for="e-kind">Kind</label>
+      <select id="e-kind">${KINDS.map(k=>`<option value="${k.id}" ${p&&p.kind===k.id?'selected':''}>${k.label}</option>`).join('')}</select></div>
+    <div class="field" id="f-title"><label for="e-title">Title</label><input id="e-title" value="${esc(p?p.title:'')}" placeholder="What is this about?"></div>
+    <div class="field" id="f-url" hidden><label for="e-url" id="l-url">Video or page address</label><input id="e-url" value="${esc(p?p.url||'':'')}" placeholder="https://www.youtube.com/watch?v=…"></div>
+    <div class="field"><label for="e-plates">Plates — images and videos bound into this entry</label>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Add images and videos">
+        <input type="file" id="e-file" multiple accept="image/*,video/*" hidden>
+        <strong>Drop images and videos here</strong>
+        <span>or click to choose &middot; you can also paste from the clipboard</span>
+        <div class="uploads" id="uploads"></div>
+      </div>
+      <textarea id="e-plates" style="min-height:82px; font-family:var(--util); font-size:14px" placeholder="https://…/photo.jpg | Fort Kochi, 6am">${esc(platesText(p?p.media:[]))}</textarea>
+      <p class="hint">One address per line, in the order they should appear. Add a caption after a vertical bar. YouTube and Vimeo links become players; anything else is treated as a picture.</p></div>
+    <div class="field"><label for="e-body" id="l-body">Body</label>
+      <textarea id="e-body" placeholder="Write it down.">${esc(p?p.body:'')}</textarea>
+      <p class="hint" id="h-body">Markdown-ish: ## heading, **bold**, *italic*, &gt; quote, - list, [text](link).</p>
+      <div class="composer" id="composer">
+        <button type="button" class="chipbtn" data-ai="title">Suggest a title</button>
+        <button type="button" class="chipbtn" data-ai="tags">Suggest tags</button>
+        <button type="button" class="chipbtn" data-ai="pullquote">Find a pull-quote</button>
+        <button type="button" class="chipbtn" data-ai="tighten">Tighten</button>
+      </div>
+      <div id="ai-out"></div></div>
+    <div class="field" id="f-source" hidden><label for="e-source">Said by</label><input id="e-source" value="${esc(p?p.source||'':'')}" placeholder="Carl Sagan, Cosmos"></div>
+    <div class="field"><label for="e-tag">Tags — these file the entry into categories</label>
+      <div class="tagbox" id="tagbox"><input id="e-tag" placeholder="tech, travel, painting…" autocomplete="off"></div>
+      <p class="hint">Press Enter or comma to add. A tag that doesn't exist yet becomes a new category.</p>
+      <div class="suggest" id="suggest"></div></div>
+    <div class="sheetfoot">
+      <button class="primary" id="e-save">${p?'Save changes':'Publish entry'}</button>
+      <button class="ghost" id="e-cancel">Cancel</button>
+      ${p?`<button class="ghost danger" id="e-del" style="margin-left:auto">Delete</button>`:''}
+    </div>
+  </div>`;
+  document.body.appendChild(scrim);
+
+  const kindSel = scrim.querySelector('#e-kind');
+  const syncKind = () => {
+    const k = kindSel.value;
+    scrim.querySelector('#f-title').hidden = (k==='quote'||k==='jot');
+    scrim.querySelector('#f-url').hidden = !(k==='video'||k==='link'||k==='image');
+    scrim.querySelector('#l-url').textContent = k==='image' ? 'Image address' : 'Video or page address';
+    scrim.querySelector('#f-source').hidden = k!=='quote';
+    scrim.querySelector('#l-body').textContent = k==='quote' ? 'The quote' : k==='jot' ? 'The thought' : k==='video' ? 'Why it is worth watching' : k==='image' ? 'Caption' : 'Body';
+    scrim.querySelector('#h-body').hidden = (k==='quote'||k==='jot');
+  };
+  kindSel.addEventListener('change', syncKind); syncKind();
+
+  /* ---- dropzone ---- */
+  const zone = scrim.querySelector('#dropzone');
+  const pick = scrim.querySelector('#e-file');
+  const list = scrim.querySelector('#uploads');
+  const plateBox = scrim.querySelector('#e-plates');
+  const appendPlate = url => {
+    plateBox.value = (plateBox.value.trim() ? plateBox.value.replace(/\s*$/,'') + '\n' : '') + url;
+  };
+  async function takeFiles(files){
+    const wanted = [...files].filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+    if(!wanted.length) return;
+    if(!sb){ toast('Uploads need a database connection — paste a URL instead.'); return; }
+    for(const f of wanted){
+      const row = document.createElement('div');
+      row.className = 'up';
+      row.innerHTML = `<span>${esc(f.name)}</span><b>waiting…</b>`;
+      list.appendChild(row);
+      const note = row.querySelector('b');
+      try{
+        const r = await uploadPlate(f, s => { note.textContent = s + '…'; });
+        appendPlate(r.url);
+        if(r.thumb) state.draftThumbs[r.url] = r.thumb;
+        note.textContent = r.to < r.from ? `${kb(r.from)} → ${kb(r.to)}` : kb(r.to);
+        row.classList.add('ok');
+      }catch(err){
+        note.textContent = err.message || 'failed';
+        row.classList.add('bad');
+      }
+    }
+  }
+  zone.addEventListener('click', e => { if(e.target === pick) return; pick.click(); });
+  zone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick.click(); } });
+  pick.addEventListener('change', () => { takeFiles(pick.files); pick.value = ''; });
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); zone.classList.add('over');
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); if(ev==='dragleave' && zone.contains(e.relatedTarget)) return;
+    zone.classList.remove('over');
+  }));
+  zone.addEventListener('drop', e => takeFiles(e.dataTransfer.files));
+  // the sheet swallows drops elsewhere so a near-miss does not navigate away
+  scrim.addEventListener('dragover', e => e.preventDefault());
+  scrim.addEventListener('drop', e => e.preventDefault());
+  scrim.addEventListener('paste', e => {
+    const f = [...(e.clipboardData?.files||[])];
+    if(f.length){ e.preventDefault(); takeFiles(f); }
+  });
+
+  const drawTags = () => {
+    const box = scrim.querySelector('#tagbox');
+    box.querySelectorAll('.tagchip').forEach(n=>n.remove());
+    const input = box.querySelector('input');
+    state.draftTags.forEach(t=>{
+      const chip=document.createElement('span'); chip.className='tagchip'; chip.style.setProperty('--tc',tagColor(t));
+      chip.innerHTML = `${esc(titleCase(t))}<button type="button" aria-label="Remove ${esc(t)}">×</button>`;
+      chip.querySelector('button').onclick = ()=>{ state.draftTags = state.draftTags.filter(x=>x!==t); drawTags(); };
+      box.insertBefore(chip, input);
+    });
+    const existing = categories().map(c=>c[0]).filter(c=>!state.draftTags.includes(c)).slice(0,12);
+    scrim.querySelector('#suggest').innerHTML = existing.map(c=>`<button type="button" class="chipbtn" data-add="${esc(c)}">+ ${esc(titleCase(c))}</button>`).join('');
+    scrim.querySelectorAll('[data-add]').forEach(b=> b.onclick = ()=>{ addTag(b.dataset.add); });
+  };
+  const addTag = v => { const t=norm(v); if(t && !state.draftTags.includes(t)) state.draftTags.push(t); drawTags(); };
+  const tagInput = scrim.querySelector('#e-tag');
+  tagInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter'||e.key===','){ e.preventDefault(); addTag(tagInput.value); tagInput.value=''; }
+    else if(e.key==='Backspace' && !tagInput.value && state.draftTags.length){ state.draftTags.pop(); drawTags(); }
+  });
+  tagInput.addEventListener('blur', ()=>{ if(tagInput.value.trim()){ addTag(tagInput.value); tagInput.value=''; } });
+  drawTags();
+
+  /* ---- compositor ---- */
+  const out = scrim.querySelector('#ai-out');
+  const bodyEl = scrim.querySelector('#e-body');
+  const titleEl = scrim.querySelector('#e-title');
+  const panel = (h) => { out.innerHTML = `<div class="aipanel">${h}</div>`; };
+  scrim.querySelectorAll('[data-ai]').forEach(btn => btn.onclick = async () => {
+    const task = btn.dataset.ai;
+    const body = bodyEl.value.trim();
+    if(!body){ toast('Write something first — the compositor reads what is there.'); return; }
+    const was = btn.textContent;
+    scrim.querySelectorAll('[data-ai]').forEach(b => b.disabled = true);
+    btn.textContent = 'Reading…';
+    try{
+      const r = await askCompositor(task, {
+        body, title: titleEl.value.trim(),
+        categories: categories().map(c=>c[0]).join(', ')
+      });
+      if(task==='title'){
+        panel(`<h4>Titles</h4>` + (r.titles||[]).map(t=>
+          `<button type="button" class="aipick" data-title="${esc(t)}">${esc(t)}</button>`).join(''));
+        out.querySelectorAll('[data-title]').forEach(b => b.onclick = () => {
+          titleEl.value = b.dataset.title; out.innerHTML=''; toast('Title set.'); });
+      }
+      else if(task==='tags'){
+        const list = (r.tags||[]).filter(t=>t && t.tag);
+        panel(`<h4>Tags</h4><div class="suggest">` + list.map(t=>
+          `<button type="button" class="chipbtn" data-addtag="${esc(norm(t.tag))}">+ ${esc(titleCase(t.tag))}${t.existing?'':' <em>new</em>'}</button>`).join('') +
+          `</div><p class="hint">Ones marked new would create a new category.</p>`);
+        out.querySelectorAll('[data-addtag]').forEach(b => b.onclick = () => { addTag(b.dataset.addtag); b.disabled = true; });
+      }
+      else if(task==='pullquote'){
+        const q = (r.quote||'').trim();
+        if(!q){ panel(`<h4>Pull-quote</h4><p class="hint">Nothing stood out — that is a fair answer.</p>`); }
+        else{
+          const verbatim = body.includes(q);
+          panel(`<h4>Pull-quote</h4><blockquote class="pullquote" style="font-size:20px">${esc(q)}</blockquote>
+            <p class="hint">${esc(r.why||'')}${verbatim?'':' · <strong>Not found verbatim in your text</strong> — check it before using.'}</p>
+            <button type="button" class="aipick" id="ai-q">Save as a separate quote entry</button>`);
+          out.querySelector('#ai-q').onclick = async () => {
+            const rec = { id:uid(), kind:'quote', title:'', body:q, source:titleEl.value.trim()||'',
+                          url:'', tags:state.draftTags.slice(), media:[], created:Date.now(), updated:Date.now() };
+            try{ await save(rec); state.posts.unshift(rec); out.innerHTML=''; render(); toast('Quote entry published.'); }
+            catch(err){ /* save() already reported */ }
+          };
+        }
+      }
+      else if(task==='tighten'){
+        const edited = (r.body||'').trim();
+        if(!edited || edited===body){ panel(`<h4>Tighten</h4><p class="hint">It reads fine as is — nothing worth changing.</p>`); }
+        else{
+          panel(`<h4>Tighten</h4><div class="diff">${wordDiff(body, edited)}</div>
+            ${(r.notes||[]).length?`<ul class="hint" style="margin:8px 0 0;padding-left:18px">${r.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+            <button type="button" class="aipick" id="ai-t">Accept these edits</button>
+            <button type="button" class="chipbtn" id="ai-tx">Discard</button>`);
+          out.querySelector('#ai-t').onclick = () => { bodyEl.value = edited; out.innerHTML=''; toast('Edits applied — your original is one undo away.'); };
+          out.querySelector('#ai-tx').onclick = () => { out.innerHTML=''; };
+        }
+      }
+    }catch(err){
+      panel(`<p class="hint" style="color:#a3341f;margin:0">${esc(err.message)}</p>`);
+    }finally{
+      scrim.querySelectorAll('[data-ai]').forEach(b => b.disabled = false);
+      btn.textContent = was;
+    }
+  });
+
+  const close = ()=> scrim.remove();
+  scrim.querySelector('#e-cancel').onclick = close;
+  scrim.addEventListener('mousedown', e=>{ if(e.target===scrim) close(); });
+  document.addEventListener('keydown', function onEsc(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown',onEsc); } });
+
+  const del = scrim.querySelector('#e-del');
+  if(del) del.onclick = async ()=>{
+    if(del.dataset.sure!=='1'){ del.dataset.sure='1'; del.textContent='Tap again to delete'; return; }
+    try{ await save(null, p.id); }catch(err){ return; }
+    state.posts = state.posts.filter(x=>x.id!==p.id);
+    delete state.comments[p.id];
+    close(); state.view={name:'feed'}; render(); toast('Entry deleted.');
+  };
+
+  scrim.querySelector('#e-save').onclick = async ()=>{
+    const kind = kindSel.value;
+    const body = scrim.querySelector('#e-body').value.trim();
+    const title = scrim.querySelector('#e-title').value.trim();
+    const url = scrim.querySelector('#e-url').value.trim();
+    const plates = parsePlates(scrim.querySelector('#e-plates').value, state.draftThumbs);
+    if(!body && !title && !url && !plates.length){ toast('Add something before publishing.'); return; }
+    if((kind==='video'||kind==='link'||kind==='image') && !url && !plates.length){
+      toast('This kind needs an address, or at least one plate.'); return; }
+    const rec = {
+      id: p?p.id:uid(), kind, title, body,
+      source: scrim.querySelector('#e-source').value.trim(),
+      url, tags: state.draftTags.slice(), media: plates,
+      created: p?p.created:Date.now(), updated: Date.now()
+    };
+    try{ await save(rec); }catch(err){ return; }
+    if(p) state.posts = state.posts.map(x=> x.id===p.id ? rec : x);
+    else state.posts.unshift(rec);
+    close(); render();
+    toast(p?'Changes saved.':'Entry published.');
+  };
+}
+
+/* ============================ 9. THEME GALLERY ============================ */
+function openThemes(){
+  const today = resolveTheme(new Date());
+  const scrim = document.createElement('div'); scrim.className='scrim';
+  scrim.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Themes">
+    <h3>The dressing room</h3>
+    <p class="hint" style="margin:-10px 0 16px">The site picks its own look each morning from the date — festivals and anniversaries first, then the season. Today it chose <strong>${esc(today.name)}</strong>. Preview any of the others here.</p>
+    <div class="grid">${Object.values(THEMES).map(t=>`
+      <button class="tcard" data-theme="${t.id}">
+        <span class="bar">${[t.p[3],t.p[4],t.p[1],t.p[0]].map(c=>`<i style="background:${c}"></i>`).join('')}</span>
+        <strong>${esc(t.name)}</strong><span>${t.id===today.id?'today':t.motif}</span>
+      </button>`).join('')}</div>
+    <div class="sheetfoot"><button class="primary" id="t-today">Back to today</button><button class="ghost" id="t-close">Close</button></div>
+  </div>`;
+  document.body.appendChild(scrim);
+  const close = ()=>scrim.remove();
+  scrim.querySelector('#t-close').onclick = close;
+  scrim.querySelector('#t-today').onclick = ()=>{ applyTheme(resolveTheme(new Date())); close(); };
+  scrim.addEventListener('mousedown', e=>{ if(e.target===scrim) close(); });
+  scrim.querySelectorAll('[data-theme]').forEach(b=> b.onclick = ()=> applyTheme(THEMES[b.dataset.theme]));
+}
+
+/* ============================ 9b. SIGN IN ============================ */
+function setAuthorUI(){
+  const b = $('#btn-author');
+  b.setAttribute('aria-pressed', state.author);
+  b.textContent = state.author ? 'Lock' : 'Write';
+}
+function openSignIn(){
+  const scrim = document.createElement('div'); scrim.className='scrim';
+  scrim.innerHTML = `<div class="sheet" style="max-width:420px" role="dialog" aria-modal="true" aria-label="Unlock writing">
+    <h3>Unlock writing</h3>
+    <p class="hint" style="margin:-10px 0 18px">One passphrase, set in your database. Readers never see this.</p>
+    <div class="field"><label for="a-pass">Passphrase</label><input id="a-pass" type="password" autocomplete="current-password"></div>
+    <p class="hint" id="a-err" style="color:#a3341f"></p>
+    <div class="sheetfoot"><button class="primary" id="a-go">Unlock</button><button class="ghost" id="a-cancel">Cancel</button></div>
+  </div>`;
+  document.body.appendChild(scrim);
+  const close = ()=>scrim.remove();
+  scrim.querySelector('#a-cancel').onclick = close;
+  scrim.addEventListener('mousedown', e=>{ if(e.target===scrim) close(); });
+  const go = async ()=>{
+    const btn = scrim.querySelector('#a-go');
+    const pass = scrim.querySelector('#a-pass').value;
+    if(!pass) return;
+    btn.disabled = true; btn.textContent = 'Checking…';
+    const { data, error } = await sb.rpc('check_pass', { pass });
+    btn.disabled = false; btn.textContent = 'Unlock';
+    if(error){ scrim.querySelector('#a-err').textContent = error.message; return; }
+    if(data !== true){ scrim.querySelector('#a-err').textContent = 'That passphrase does not match.'; return; }
+    PASS = pass;
+    try{ sessionStorage.setItem('daybook:pass', pass); }catch(e){}
+    state.author = true; setAuthorUI(); render(); close();
+    toast('Unlocked. You can publish now.');
+  };
+  scrim.querySelector('#a-go').onclick = go;
+  scrim.querySelector('#a-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+  scrim.querySelector('#a-pass').focus();
+}
+function showNotice(kind){
+  const el = $('#notice');
+  if(kind==='demo'){
+    el.innerHTML = `<strong>Demo mode.</strong> Everything works, but nothing is saved — the entries below are samples.
+      Open <code>index.html</code>, paste your Supabase project URL and anon key into the two lines at the top of the script, then redeploy.`;
+    el.hidden = false;
+  } else if(kind==='error'){
+    el.innerHTML = `<strong>Can't reach the database.</strong> Check that the URL and anon key are correct and that the
+      <code>posts</code> and <code>comments</code> tables exist with their read policies.`;
+    el.hidden = false;
+  } else el.hidden = true;
+}
+
+/* ============================ 10. PERSISTENCE + EVENTS ============================ */
+async function save(post, removedId){
+  if(!sb) return;                                   // demo mode — nothing to persist
+  try{
+    if(removedId) await DB.deletePost(removedId);
+    else if(post) await DB.upsertPost(post);
+  }catch(err){
+    toast('Could not save: ' + (err.message || 'check your connection'));
+    throw err;
+  }
+}
+
+/* ---- reading files back in ---- */
+// Understands the frontmatter this site writes, and degrades gracefully for
+// plain Obsidian notes that use different keys or none at all.
+function parseFrontmatter(text){
+  const t = String(text||'').replace(/^\uFEFF/,'');
+  const m = t.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if(!m) return { meta:{}, body:t.trim() };
+  const meta = {};
+  let key = null;
+  for(const raw of m[1].split(/\r?\n/)){
+    const item = raw.match(/^\s+-\s+(.*)$/);
+    if(item && key){ (meta[key] = Array.isArray(meta[key]) ? meta[key] : []).push(item[1].trim()); continue; }
+    const kv = raw.match(/^([A-Za-z_][\w-]*)\s*:\s*(.*)$/);
+    if(!kv) continue;
+    key = kv[1].toLowerCase();
+    const v = kv[2].trim();
+    meta[key] = v === '' ? [] : v;
+  }
+  return { meta, body:m[2].trim() };
+}
+function metaList(v){
+  if(Array.isArray(v)) return v.map(s=>String(s).replace(/^["'-\s]+|["']+$/g,'')).filter(Boolean);
+  const s = String(v||'').trim().replace(/^\[|\]$/g,'');
+  return s ? s.split(',').map(x=>x.trim().replace(/^["']|["']$/g,'')).filter(Boolean) : [];
+}
+function mdToPost(text, filename){
+  const { meta, body } = parseFrontmatter(text);
+  const name = String(filename||'').replace(/\.(md|markdown|txt)$/i,'');
+  const h1 = body.match(/^#\s+(.+)$/m);
+  const title = String(meta.title || (h1 ? h1[1] : '') || name.replace(/^\d{4}-\d{2}-\d{2}-/,'').replace(/[-_]+/g,' ')).trim();
+  const dstr = meta.date || meta.created || (name.match(/^(\d{4}-\d{2}-\d{2})/)||[])[1];
+  const created = dstr && !isNaN(Date.parse(dstr)) ? Date.parse(dstr) : Date.now();
+  const media = metaList(meta.media).map(line=>{
+    const i = line.indexOf('|');
+    const url = (i<0 ? line : line.slice(0,i)).trim();
+    return { type:plateType(url), url, thumb:'', caption:i<0 ? '' : line.slice(i+1).trim() };
+  }).filter(x=>/^https?:\/\//.test(x.url));
+  const kind = ['post','quote','jot','image','video','link'].includes(String(meta.kind)) ? meta.kind : 'post';
+  const clean = h1 && !meta.title ? body.replace(/^#\s+.+$/m,'').trim() : body;
+  return {
+    // deterministic, so re-importing the same file updates instead of duplicating
+    id: 'md' + hash(name + '|' + title + '|' + new Date(created).toISOString().slice(0,10)).toString(36),
+    kind, title: kind==='quote'||kind==='jot' ? '' : title,
+    body: kind==='quote' ? clean.replace(/^>\s?/gm,'').split(/\n—/)[0].trim() : clean,
+    source: String(meta.source||''), url: String(meta.url||''),
+    tags: metaList(meta.tags).map(norm), media,
+    created, updated: Date.now()
+  };
+}
+async function readFilesAsPosts(files){
+  const found = [], problems = [];
+  let comments = null;
+  for(const f of files){
+    let text;
+    try{ text = await f.text(); }catch(e){ problems.push(`${f.name}: unreadable`); continue; }
+    if(/\.json$/i.test(f.name)){
+      try{
+        const j = JSON.parse(text);
+        const posts = Array.isArray(j) ? j : (j.posts || []);
+        if(!Array.isArray(posts)) throw new Error('no posts array');
+        posts.forEach(p => found.push({...p, media:normMedia(p), tags:(p.tags||[]).map(norm)}));
+        if(j.comments && Object.keys(j.comments).length) comments = {...(comments||{}), ...j.comments};
+      }catch(e){ problems.push(`${f.name}: not a Daybook backup (${e.message})`); }
+    } else if(/\.(md|markdown|txt)$/i.test(f.name)){
+      try{ found.push(mdToPost(text, f.name)); }
+      catch(e){ problems.push(`${f.name}: ${e.message}`); }
+    } else problems.push(`${f.name}: skipped, not .json or .md`);
+  }
+  return { found, problems, comments };
+}
+// Comments cannot be restored through the browser with their original ids and
+// timestamps, so hand the author SQL to paste into Supabase instead.
+function commentsSQL(byPost){
+  const rows = [];
+  const q = s => "'" + String(s==null?'':s).replace(/'/g,"''") + "'";
+  for(const pid of Object.keys(byPost||{}))
+    for(const c of byPost[pid])
+      rows.push(`  (${q(c.id)}, ${q(pid)}, ${q(c.name)}, ${q(c.body)}, ${q(new Date(c.ts).toISOString())})`);
+  if(!rows.length) return '';
+  return `insert into public.comments (id, post_id, name, body, created_at)\nvalues\n${rows.join(',\n')}\non conflict (id) do nothing;`;
+}
+
+function openRestore(){
+  if(sb && !state.author){ toast('Unlock writing first — Restore needs your passphrase.'); return; }
+  const scrim = document.createElement('div'); scrim.className = 'scrim';
+  scrim.innerHTML = `<div class="sheet" style="max-width:560px" role="dialog" aria-modal="true" aria-label="Restore from backup">
+    <h3>Restore</h3>
+    <p class="hint" style="margin:-10px 0 16px">Drop a <code>daybook-backup.json</code> or any number of <code>.md</code> files.
+      Nothing is written until you confirm.</p>
+    <div class="dropzone" id="r-zone" tabindex="0" role="button" aria-label="Choose files to restore">
+      <input type="file" id="r-file" multiple accept=".json,.md,.markdown,.txt" hidden>
+      <strong>Drop files here</strong><span>or click to choose</span>
+    </div>
+    <div id="r-report"></div>
+    <div class="field" id="r-mode" hidden style="margin-top:14px">
+      <label>Entries that already exist</label>
+      <select id="r-how">
+        <option value="skip">Leave them alone — only add what is missing</option>
+        <option value="overwrite">Replace them with the backup version</option>
+      </select>
+    </div>
+    <div class="sheetfoot">
+      <button class="primary" id="r-go" disabled>Restore</button>
+      <button class="ghost" id="r-cancel">Cancel</button>
+      <button class="ghost" id="r-sql" hidden style="margin-left:auto">Copy comment SQL</button>
+    </div>
+  </div>`;
+  document.body.appendChild(scrim);
+
+  const zone = scrim.querySelector('#r-zone'), pick = scrim.querySelector('#r-file');
+  const report = scrim.querySelector('#r-report'), go = scrim.querySelector('#r-go');
+  let batch = null;
+
+  const close = () => scrim.remove();
+  scrim.querySelector('#r-cancel').onclick = close;
+  scrim.addEventListener('mousedown', e => { if(e.target === scrim) close(); });
+  scrim.addEventListener('dragover', e => e.preventDefault());
+  scrim.addEventListener('drop', e => e.preventDefault());
+
+  async function inspect(files){
+    report.innerHTML = `<p class="hint">Reading…</p>`;
+    batch = await readFilesAsPosts([...files]);
+    const known = new Set(state.posts.map(p=>p.id));
+    const fresh = batch.found.filter(p=>!known.has(p.id)).length;
+    const dupes = batch.found.length - fresh;
+    const cN = Object.values(batch.comments||{}).reduce((a,b)=>a+b.length,0);
+    report.innerHTML =
+      `<p class="hint" style="margin-top:12px"><strong>${batch.found.length}</strong> entr${batch.found.length===1?'y':'ies'} found —
+        ${fresh} new, ${dupes} already here${cN?` · ${cN} comments in the file`:''}.</p>` +
+      (batch.problems.length ? `<p class="hint" style="color:#a3341f">${batch.problems.map(esc).join('<br>')}</p>` : '') +
+      (batch.found.length ? `<div class="suggest">${batch.found.slice(0,8).map(p=>
+        `<span class="chipbtn">${esc((p.title||p.body||'untitled').slice(0,28))}</span>`).join('')}
+        ${batch.found.length>8?`<span class="chipbtn">+${batch.found.length-8} more</span>`:''}</div>` : '');
+    scrim.querySelector('#r-mode').hidden = !dupes;
+    scrim.querySelector('#r-sql').hidden = !cN;
+    go.disabled = !batch.found.length;
+  }
+
+  zone.addEventListener('click', e => { if(e.target !== pick) pick.click(); });
+  zone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick.click(); } });
+  pick.addEventListener('change', () => { if(pick.files.length) inspect(pick.files); });
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('over'); }));
+  zone.addEventListener('drop', e => { if(e.dataTransfer.files.length) inspect(e.dataTransfer.files); });
+
+  scrim.querySelector('#r-sql').onclick = async () => {
+    const sql = commentsSQL(batch && batch.comments);
+    try{ await navigator.clipboard.writeText(sql); toast('SQL copied — paste it into the Supabase SQL editor.'); }
+    catch(e){ saveBlob(sql, 'daybook-comments.sql', 'text/plain'); toast('SQL downloaded.'); }
+  };
+
+  go.onclick = async () => {
+    const how = scrim.querySelector('#r-how').value;
+    const known = new Set(state.posts.map(p=>p.id));
+    const queue = batch.found.filter(p => how === 'overwrite' || !known.has(p.id));
+    let done = 0, failed = 0;
+    go.disabled = true;
+    for(const p of queue){
+      go.textContent = `Restoring ${done+failed+1} of ${queue.length}…`;
+      try{
+        if(sb) await DB.upsertPost(p);
+        state.posts = known.has(p.id) ? state.posts.map(x => x.id===p.id ? p : x) : [p, ...state.posts];
+        known.add(p.id); done++;
+      }catch(err){ failed++; console.error('restore failed for', p.id, err); }
+    }
+    state.posts.sort((a,b)=>b.created-a.created);
+    close(); render();
+    toast(failed ? `Restored ${done}, ${failed} failed — see the console.` : `Restored ${done} entr${done===1?'y':'ies'}.`);
+  };
+}
+
+function exportBackup(){
+  try{
+    const blob = new Blob([JSON.stringify({posts:state.posts, comments:state.comments}, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'daybook-backup.json';
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('Backup downloaded.');
+  }catch(e){ toast('Backup failed in this preview — try the deployed site.'); }
+}
+
+document.addEventListener('click', async e=>{
+  const t = e.target.closest('button'); if(!t) return;
+  if(leafOpen && (t.dataset.tag || t.dataset.open || t.dataset.edit)) closeLeaf();
+  if(t.dataset.cat !== undefined){ state.cat = t.dataset.cat || null; state.view={name:'feed'}; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+  else if(t.dataset.kind){ state.kind = state.kind===t.dataset.kind ? null : t.dataset.kind; render(); }
+  else if(t.dataset.tag){ state.cat = t.dataset.tag; state.view={name:'feed'}; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+  else if(t.dataset.dl){ downloadPost(t.dataset.dl); }
+  else if(t.dataset.play){
+    const vm = videoMeta(t.dataset.play);
+    if(vm) t.outerHTML = `<figure class="plate"><iframe src="${vm.embed}?autoplay=1"
+      allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></figure>`;
+  }
+  else if(t.dataset.open){ state.view={name:'post', id:t.dataset.open}; render(); window.scrollTo({top:0}); }
+  else if(t.dataset.edit){ openEditor(t.dataset.edit); }
+  else if(t.id==='back'){ state.view={name:'feed'}; render(); }
+  else if(t.id==='btn-new'){ openEditor(null); }
+  else if(t.id==='btn-themes'){ openThemes(); }
+  else if(t.id==='btn-layout'){
+    state.layout = state.layout==='gathering' ? 'column' : 'gathering';
+    try{ sessionStorage.setItem('daybook:layout', state.layout); }catch(e){}
+    render();
+  }
+  else if(t.id==='btn-export'){ exportBackup(); }
+  else if(t.id==='btn-import'){ openRestore(); }
+  else if(t.id==='btn-author'){
+    if(!sb){ state.author = !state.author; setAuthorUI(); render();
+      toast(state.author ? 'Write mode on (demo — nothing is saved).' : 'Write mode off.'); return; }
+    if(state.author){
+      PASS = null;
+      try{ sessionStorage.removeItem('daybook:pass'); }catch(e){}
+      state.author = false; setAuthorUI(); render(); toast('Locked.');
+    } else openSignIn();
+  }
+  else if(t.dataset.delc){
+    if(t.dataset.sure!=='1'){ t.dataset.sure='1'; t.textContent='Sure?'; return; }
+    const cid = t.dataset.delc, pid = state.view.id;
+    try{ if(sb) await DB.deleteComment(cid); }catch(err){ toast('Could not remove that comment.'); return; }
+    state.comments[pid] = commentsFor(pid).filter(c=>c.id!==cid);
+    renderComments(pid); toast('Comment removed.');
+  }
+  else if(t.id==='c-send'){
+    const id = state.view.id;
+    if($('#c-hp').value) { toast('Comment posted.'); return; }
+    const name = ($('#c-name-in').value.trim() || 'Anonymous').slice(0,40);
+    const body = $('#c-body-in').value.trim();
+    if(!body){ toast('Write something first.'); return; }
+    if(Date.now() - (window._lastComment||0) < 5000){ toast('Give it a few seconds between comments.'); return; }
+    window._lastComment = Date.now();
+    t.disabled = true; t.textContent = 'Posting…';
+    let rec;
+    try{
+      rec = sb ? await DB.addComment(id, name, body.slice(0,1500))
+               : {id:uid(), name, body:body.slice(0,1500), ts:Date.now()};
+    }catch(err){
+      t.disabled=false; t.textContent='Post comment';
+      toast('Comment did not go through: ' + (err.message||'try again')); return;
+    }
+    t.disabled = false; t.textContent = 'Post comment';
+    state.comments[id] = commentsFor(id).concat([rec]);
+    $('#c-body-in').value='';
+    renderComments(id); render();
+    toast('Comment posted.');
+  }
+});
+$('#q').addEventListener('input', e=>{ state.q = e.target.value; if(state.view.name!=='feed') state.view={name:'feed'}; render(); });
+
+/* ============================ 11. BOOT ============================ */
+(async function init(){
+  applyTheme(resolveTheme(new Date()));
+  $('#tagline').textContent = 'Written daily by Gaurav';
+  try{ state.layout = sessionStorage.getItem('daybook:layout') || 'column'; }catch(e){}
+
+  const connected = await connect();
+
+  if(!connected){
+    state.posts = SEED.map(p => ({...p, media:normMedia(p)}));
+    state.comments = {}; state.author = false;
+    showNotice(CONFIGURED ? 'error' : 'demo');
+    setAuthorUI(); render(); return;
+  }
+
+  try{
+    const [posts, comments] = await Promise.all([DB.loadPosts(), DB.loadComments()]);
+    state.posts = posts; state.comments = comments;
+    showNotice(null);
+  }catch(err){
+    console.error(err); state.posts = []; state.comments = {};
+    showNotice('error');
+  }
+
+  try{
+    const saved = sessionStorage.getItem('daybook:pass');
+    if(saved){
+      const { data } = await sb.rpc('check_pass', { pass: saved });
+      if(data === true){ PASS = saved; state.author = true; }
+      else sessionStorage.removeItem('daybook:pass');
+    }
+  }catch(e){ /* no session storage available */ }
+  setAuthorUI(); render();
+
+  // Optional: new comments appear without a refresh.
+  // Requires enabling Realtime for the comments table in the Supabase dashboard.
+  try{
+    sb.channel('comments-live').on('postgres_changes',
+      { event:'INSERT', schema:'public', table:'comments' },
+      ({ new:c })=>{
+        const list = commentsFor(c.post_id);
+        if(list.some(x=>x.id===c.id)) return;
+        state.comments[c.post_id] = list.concat([{id:c.id,name:c.name,body:c.body,ts:Date.parse(c.created_at)}]);
+        if(state.view.name==='post' && state.view.id===c.post_id) renderComments(c.post_id);
+      }).subscribe();
+  }catch(err){ /* realtime is optional */ }
+})();
+</script>
